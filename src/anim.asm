@@ -11,6 +11,9 @@
 ;           the map. The map scrolls down a pixel a frame, so delay 1 holds
 ;           the texture still on screen (very far away), delay 2 moves it at
 ;           half speed: parallax
+;   scroll_down  rotate them down one pixel: the texture moves faster than
+;           the map (delay 2: 1.5 pixels a frame), so things drawn on the map
+;           seem to move forward through it (level 4's ships under way)
 ;
 ; TIMING: ~150 cycles per char rewritten. anim_update rewrites at most
 ; ANIM_PER_FRAME chars a frame (any others that are due wait a frame), in
@@ -66,10 +69,14 @@ anim_init
         iny
         lda (zp_ptr0),y
         sta anim_n,x
-        txa                     ; stagger: animation i first fires at frame i+1
-        clc
-        adc #1
-        sta anim_t,x
+        lda anim_mode,x         ; scrolling chars all start together: a
+        bne +                   ;   texture made of several of them must
+        txa                     ;   move as one (ANIM_PER_FRAME of them)
+        clc                     ; frames: staggered, animation i first fires
+        adc #1                  ;   at frame i + 1
+        bne ++
++       lda #1
+++      sta anim_t,x
         lda #0
         sta anim_f,x
         lda zp_ptr0             ; its frames start after the 4-byte header
@@ -129,7 +136,10 @@ anim_update
         lda anim_chi,x
         sta zp_ptr1+1
         lda anim_mode,x
-        bne .scroll
+        beq .frame
+        jsr anim_rotate         ; scroll / scroll_down
+        jmp .skip
+.frame
         ; --- next frame: copy its 8 bytes, advance (or wrap) ---
         inc anim_f,x
         lda anim_f,x
@@ -157,9 +167,16 @@ anim_update
         sta (zp_ptr1),y
         dey
         bpl -
-        jmp .skip
-        ; --- scroll: rotate the rows up one pixel ---
-.scroll ldy #0
+.skip   dex
+        bpl .loop
+.out    rts
+
+; anim_rotate: rotate the char at zp_ptr1 one pixel row; A = its mode, 1
+; (scroll: up) or 2 (scroll_down: down). Clobbers A, Y.
+anim_rotate
+        cmp #2
+        beq .down
+        ldy #0                  ; up: row 0 goes to the bottom
         lda (zp_ptr1),y
         pha
 -       iny
@@ -171,6 +188,16 @@ anim_update
         bne -
         pla
         sta (zp_ptr1),y
-.skip   dex
-        bpl .loop
-.out    rts
+        rts
+.down   ldy #7                  ; down: row 7 goes to the top
+        lda (zp_ptr1),y
+        pha
+-       dey
+        lda (zp_ptr1),y
+        iny
+        sta (zp_ptr1),y
+        dey
+        bne -
+        pla
+        sta (zp_ptr1),y         ; (Y = 0)
+        rts

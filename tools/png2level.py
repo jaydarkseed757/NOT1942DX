@@ -112,7 +112,7 @@ def read_anims(cfg, base, shared, match, char_index, chars):
         delay = int(spec.get("delay", 8))
         if not 1 <= delay <= 255:
             fail(f"{where}row {r}: delay must be 1-255 frames")
-        if mode == "scroll":
+        if mode in ("scroll", "scroll_down"):
             frames = [first]
         elif mode == "frames":
             n = int(spec["frames"])
@@ -120,7 +120,7 @@ def read_anims(cfg, base, shared, match, char_index, chars):
                 fail(f"{where}row {r}: 2-{COLS} frames")
             frames = [read_cell(pix, k, r, shared, where) for k in range(n)]
         else:
-            fail(f"{where}row {r}: mode must be frames or scroll")
+            fail(f"{where}row {r}: mode must be frames, scroll or scroll_down")
         own = {c for bits, c in frames if any((b >> s) & 3 == 3 for b in bits for s in (0, 2, 4, 6))}
         if len(own) > 1:
             fail(f"{where}row {r}: its frames use different own colours (one char, one colour RAM colour)")
@@ -130,7 +130,8 @@ def read_anims(cfg, base, shared, match, char_index, chars):
             if any((b >> s) & 3 == 3 for b in bits0 for s in (0, 2, 4, 6)) and c0 != colour:
                 fail(f"{where}row {r}: its frames' own colour differs from the char's")
             chars[code - FIRST_CHAR] = (bits0, colour)
-        out.append((code, 1 if mode == "scroll" else 0, delay, [bits for bits, _ in frames]))
+        out.append((code, {"frames": 0, "scroll": 1, "scroll_down": 2}[mode], delay,
+                    [bits for bits, _ in frames]))
     if len(out) > MAX_ANIMS:
         fail(f"{len(out)} animations; a level can have at most {MAX_ANIMS}")
     return out
@@ -201,7 +202,8 @@ def main():
         out.append(f"\n{label}_{name}_lz     ; {len(raw)} bytes, packed {len(packed)}")
         out.append(asm_bytes(packed))
     # animations (src/anim.asm): count, then per animation: char code, mode
-    # (0 = frames, 1 = scroll), delay, frame count, frames x 8 bitmap bytes
+    # (0 = frames, 1 = scroll, 2 = scroll_down), delay, frame count, frames x
+    # 8 bitmap bytes
     out.append(f"\n{label}_anims      ; {len(anims)} animated chars")
     out.append(f"        !byte {len(anims)}")
     for code, mode, delay, frames in anims:

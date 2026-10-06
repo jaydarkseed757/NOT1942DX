@@ -9,16 +9,12 @@
   "png": "level4_anim.png",
   "rows": [
    {
-    "frames": 4,
-    "delay": 6
+    "mode": "scroll_down",
+    "delay": 2
    },
    {
-    "frames": 4,
-    "delay": 5
-   },
-   {
-    "frames": 4,
-    "delay": 12
+    "mode": "scroll_down",
+    "delay": 2
    }
   ]
  }

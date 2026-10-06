@@ -31,8 +31,9 @@
 ;              bow (cols 17-18, row 39) -> DX 29, DY 36
 ;              propellers (row 33) at cols 9 / 14 / 21 / 26 -> DX 13 / 23 / 37 / 47,
 ;              DY 24
-; Boss 4 guns: turrets (row 7) A col 10 / B col 15 / X col 27 -> DX 14 / 24 / 48,
-;              DY 16; bridge (col 20, row 9) -> DX 34, DY 20
+; Boss 4 guns: turrets (centres at row 10) A cols 11-12 / B 18-19 / X 28-29
+;              -> DX 17 / 31 / 51, DY 20; bridge top (col 23, row 6)
+;              -> DX 41, DY 12
 ; =============================================================================
 
 BOSS_COUNT = 4
@@ -73,11 +74,11 @@ boss3_parts                             ; the lower row (wings, engines, hull)
         +boss_part_box PTR_BOSS3_BM, 24, 0, 0, 0, 24, 40
         +boss_part_box PTR_BOSS3_BR, 48, 0, 0, 6, 24, 20
         +boss_part_box PTR_BOSS3_TM, 24, -42, 6, 2, 12, 40 ; (Y wraps: 42 up)
-boss4_parts
-        +boss_parts 3
-        +boss_part PTR_BOSS4_L, 0, 0
-        +boss_part PTR_BOSS4_M, 24, 0
-        +boss_part PTR_BOSS4_R, 48, 0
+boss4_parts                             ; the hull is hit (rows 2-18), not
+        +boss_parts 3                   ;   the water around it
+        +boss_part_box PTR_BOSS4_L, 0, 0, 0, 4, 24, 34
+        +boss_part_box PTR_BOSS4_M, 24, 0, 0, 4, 24, 34
+        +boss_part_box PTR_BOSS4_R, 48, 0, 0, 4, 24, 34
 
 ; -----------------------------------------------------------------------------
 ; Boss 1 "Thunder"
@@ -223,22 +224,22 @@ boss4_script
         +seg 0, 0.5, 96                 ; into view, Y 56
 boss4_loop
         +seg 0.25, 0, 48                ; creep right...
-        +boss_fire 14, 16               ;   turret A
+        +boss_fire 17, 20               ;   turret A
         +seg 0.25, 0, 24
-        +boss_fire 24, 16               ;   turret B
+        +boss_fire 31, 20               ;   turret B
         +seg 0.25, 0, 24
-        +boss_fire 48, 16               ;   turret X
+        +boss_fire 51, 20               ;   turret X
         +seg -0.25, 0, 48               ; ...and back
-        +boss_spread 34, 20             ;   bridge flak
+        +boss_spread 41, 12             ;   bridge flak
         +seg -0.25, 0, 48
         +seg -0.25, 0, 48               ; creep left...
-        +boss_fire 48, 16
+        +boss_fire 51, 20
         +seg -0.25, 0, 24
-        +boss_fire 24, 16
+        +boss_fire 31, 20
         +seg -0.25, 0, 24
-        +boss_fire 14, 16
+        +boss_fire 17, 20
         +seg 0.25, 0, 48                ; ...and back
-        +boss_spread 34, 20
+        +boss_spread 41, 12
         +seg 0.25, 0, 48
         +seg_loop boss4_loop
 
@@ -248,18 +249,18 @@ boss4_script2
         +seg 0, 0.5, 32                 ; 16 px closer
 boss4_loop2
         +seg 0.5, 0, 24
-        +boss_spread 14, 16
+        +boss_spread 17, 20
         +seg 0.5, 0, 24
-        +boss_fire 48, 16
+        +boss_fire 51, 20
         +seg -0.5, 0, 24
-        +boss_spread 34, 20
+        +boss_spread 41, 12
         +seg -0.5, 0, 24
-        +boss_fire 24, 16
+        +boss_fire 31, 20
         +seg -0.5, 0, 24
-        +boss_spread 48, 16
+        +boss_spread 51, 20
         +seg -0.5, 0, 24
-        +boss_fire 14, 16
+        +boss_fire 17, 20
         +seg 0.5, 0, 24
-        +boss_spread 24, 16
+        +boss_spread 31, 20
         +seg 0.5, 0, 24
         +seg_loop boss4_loop2

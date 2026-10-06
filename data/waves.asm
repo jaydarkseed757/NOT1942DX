@@ -13,11 +13,11 @@ E_RAIDER    = 2                 ; orange twin-tail fighter (level 2)
 E_RAIDER_UP = 3                 ; the same, nose up: for attacks from behind
 E_GUNSHIP   = 4                 ; white heavy twin-engine fighter (level 2)
 E_DIVER     = 5                 ; cyan gull-winged dive bomber (level 3)
-E_ACE       = 6                 ; yellow fighter: an ace (level 4), fighter shape
+E_ACE       = 6                 ; yellow fighter: an ace (level 4)
 ENEMY_TYPES = 7
 
 ;                fighter      leader      raider       raider_up       gunship      diver      ace
-etype_ptr   !byte PTR_FIGHTER, PTR_LEADER, PTR_RAIDER,  PTR_RAIDER_UP,  PTR_GUNSHIP, PTR_DIVER, PTR_FIGHTER
+etype_ptr   !byte PTR_FIGHTER, PTR_LEADER, PTR_RAIDER,  PTR_RAIDER_UP,  PTR_GUNSHIP, PTR_DIVER, PTR_ACE
 etype_col   !byte COL_GREEN,   COL_RED,    COL_ORANGE,  COL_ORANGE,     COL_WHITE,   COL_CYAN,  COL_YELLOW
 
 ; Points for shooting one down, as BCD digits "MMLL" of the 6-digit score:

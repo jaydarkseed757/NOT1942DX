@@ -16,153 +16,225 @@
 ;   +spawn E_TYPE, X, P_PATH      (types and paths: data/waves.asm)
 ;   +waves_end
 ;
-; The "rN" comments are NOT 1942's record numbers, before DX's 2:3 stretch.
+; DX retunes NOT 1942's waves for 8 enemy slots, as in levels 1-3: the same
+; moves flown as formations (no more than 3 planes on one row; echelons and
+; strings one or two rows apart), at most 6 alive. The carriers in the
+; picture (rows 196 and 378) launch fighters as they pass.
 ; ENEMY BUDGET: run python3 tools/check_waves.py on this file after edits.
 ; =============================================================================
 
 level4_waves
         +waves_start LEVEL4_BOSS_ROW
 
-; r4: aces dive in a pair
+
+; aces dive in a pair
         +wave 42, 2
         +spawn E_ACE, 50, P_DIVE_FAST
         +spawn E_ACE, 122, P_DIVE_FAST
 
-; r14: a gunship hovers over the fleet
-        +wave 57, 1
+; a gunship hovers over the fleet; aces dive past it
+        +wave 58, 1
         +spawn E_GUNSHIP, 86, P_HOVER
+        +wave 61, 2
+        +spawn E_ACE, 40, P_DIVE
+        +spawn E_ACE, 132, P_DIVE
 
-; r26: dive-bombers from both sides
-        +wave 75, 2
+; dive-bombers from both sides, in pairs
+        +wave 78, 2
         +spawn E_DIVER, 30, P_DIVEBOMB
         +spawn E_DIVER, 142, P_DIVEBOMB
+        +wave 81, 2
+        +spawn E_DIVER, 58, P_DIVEBOMB
+        +spawn E_DIVER, 114, P_DIVEBOMB
 
-; r40: aces loop
-        +wave 96, 2
+; aces loop, two each way
+        +wave 100, 2
+        +spawn E_ACE, 100, P_LOOP_L
+        +spawn E_ACE, 60, P_LOOP_R
+        +wave 102, 2
         +spawn E_ACE, 100, P_LOOP_L
         +spawn E_ACE, 60, P_LOOP_R
 
-; r60: leaders swoop (medals!)
-        +wave 126, 2
+; leaders swoop (medals!), each with an ace on its wing
+        +wave 128, 2
         +spawn E_LEADER, 130, P_SWOOP_L
         +spawn E_LEADER, 30, P_SWOOP_R
+        +wave 132, 2
+        +spawn E_ACE, 150, P_SWOOP_L
+        +spawn E_ACE, 10, P_SWOOP_R
 
-; r76: rear attack trio
-        +wave 150, 3
+; rear attack: five climb from behind, staggered
+        +wave 150, 1
         +spawn E_RAIDER_UP, 30, P_RISE
+        +wave 152, 1
         +spawn E_RAIDER_UP, 86, P_RISE
+        +wave 154, 1
         +spawn E_RAIDER_UP, 142, P_RISE
+        +wave 156, 1
+        +spawn E_RAIDER_UP, 58, P_RISE
+        +wave 158, 1
+        +spawn E_RAIDER_UP, 114, P_RISE
 
-; r90: ace crossfire
-        +wave 171, 2
+; ace crossfire: strings from both sides
+        +wave 172, 1
         +spawn E_ACE, 0, P_CROSS_R
+        +wave 173, 1
+        +spawn E_ACE, 0, P_CROSS_R
+        +wave 174, 1
+        +spawn E_ACE, 0, P_CROSS_R
+        +wave 176, 1
+        +spawn E_ACE, 171, P_CROSS_L
+        +wave 177, 1
+        +spawn E_ACE, 171, P_CROSS_L
+        +wave 178, 1
         +spawn E_ACE, 171, P_CROSS_L
 
-; r102: weaving gunships
-        +wave 189, 2
+; carrier launch: fighters loop up from the carrier
+        +wave 194, 2
+        +spawn E_FIGHTER, 90, P_LOOP_L
+        +spawn E_FIGHTER, 70, P_LOOP_R
+        +wave 196, 2
+        +spawn E_FIGHTER, 90, P_LOOP_L
+        +spawn E_FIGHTER, 70, P_LOOP_R
+        +wave 198, 1
+        +spawn E_FIGHTER, 90, P_LOOP_L
+
+; weaving gunships, an ace diving between
+        +wave 228, 2
         +spawn E_GUNSHIP, 40, P_WEAVE
         +spawn E_GUNSHIP, 120, P_WEAVE
-
-; r118: fast ace trio
-        +wave 213, 3
-        +spawn E_ACE, 30, P_DIVE_FAST
+        +wave 232, 1
         +spawn E_ACE, 86, P_DIVE_FAST
-        +spawn E_ACE, 142, P_DIVE_FAST
 
-; r128: divers and a hovering leader
-        +wave 228, 3
+; fast ace echelon
+        +wave 250, 1
+        +spawn E_ACE, 30, P_DIVE_FAST
+        +wave 252, 1
+        +spawn E_ACE, 66, P_DIVE_FAST
+        +wave 254, 1
+        +spawn E_ACE, 102, P_DIVE_FAST
+        +wave 256, 1
+        +spawn E_ACE, 138, P_DIVE_FAST
+
+; divers and a hovering leader
+        +wave 268, 3
         +spawn E_DIVER, 40, P_DIVEBOMB
         +spawn E_DIVER, 132, P_DIVEBOMB
         +spawn E_LEADER, 86, P_HOVER
+        +wave 271, 2
+        +spawn E_DIVER, 66, P_DIVEBOMB
+        +spawn E_DIVER, 106, P_DIVEBOMB
 
-; r144: raiders sweep the corners
-        +wave 252, 2
+; raiders sweep the corners, two each
+        +wave 290, 2
+        +spawn E_RAIDER, 20, P_DIAG_R
+        +spawn E_RAIDER, 150, P_DIAG_L
+        +wave 292, 2
         +spawn E_RAIDER, 20, P_DIAG_R
         +spawn E_RAIDER, 150, P_DIAG_L
 
-; r156: ace zigzag squad (1/3)
-        +wave 270, 1
-        +spawn E_ACE, 40, P_ZIGZAG
-
-; r158: ace zigzag squad (2/3)
-        +wave 273, 1
+; ace zigzag squad of five
+        +wave 310, 1
+        +spawn E_ACE, 30, P_ZIGZAG
+        +wave 312, 1
+        +spawn E_ACE, 58, P_ZIGZAG
+        +wave 314, 1
         +spawn E_ACE, 86, P_ZIGZAG
+        +wave 316, 1
+        +spawn E_ACE, 114, P_ZIGZAG
+        +wave 318, 1
+        +spawn E_ACE, 142, P_ZIGZAG
 
-; r160: ace zigzag squad (3/3)
-        +wave 276, 1
-        +spawn E_ACE, 132, P_ZIGZAG
-
-; r176: climbers from behind
-        +wave 300, 2
+; climbers from behind, two each way
+        +wave 338, 2
         +spawn E_RAIDER_UP, 30, P_RISE_R
         +spawn E_RAIDER_UP, 140, P_RISE_L
+        +wave 341, 2
+        +spawn E_RAIDER_UP, 46, P_RISE_R
+        +spawn E_RAIDER_UP, 124, P_RISE_L
 
-; r189: carrier launch: fighters loop
-        +wave 319, 2
-        +spawn E_FIGHTER, 90, P_LOOP_L
-        +spawn E_FIGHTER, 70, P_LOOP_R
-
-; r209: gunship crossfire
-        +wave 350, 2
+; gunship crossfire
+        +wave 360, 2
         +spawn E_GUNSHIP, 0, P_CROSS_R
         +spawn E_GUNSHIP, 171, P_CROSS_L
 
-; r221: dive-bomb stream (1/3)
-        +wave 368, 1
+; carrier launch: a string of fighters loops each way
+        +wave 376, 1
+        +spawn E_FIGHTER, 90, P_LOOP_L
+        +wave 377, 1
+        +spawn E_FIGHTER, 90, P_LOOP_L
+        +wave 381, 1
+        +spawn E_FIGHTER, 70, P_LOOP_R
+        +wave 382, 1
+        +spawn E_FIGHTER, 70, P_LOOP_R
+
+; dive-bomb stream of five
+        +wave 406, 1
         +spawn E_DIVER, 30, P_DIVEBOMB
-
-; r223: dive-bomb stream (2/3)
-        +wave 371, 1
+        +wave 408, 1
         +spawn E_DIVER, 60, P_DIVEBOMB
-
-; r225: dive-bomb stream (3/3)
-        +wave 373, 1
+        +wave 410, 1
         +spawn E_DIVER, 90, P_DIVEBOMB
+        +wave 412, 1
+        +spawn E_DIVER, 120, P_DIVEBOMB
+        +wave 414, 1
+        +spawn E_DIVER, 150, P_DIVEBOMB
 
-; r237: leaders loop (medals!)
-        +wave 392, 2
+; leaders loop (medals!) with ace wingmen
+        +wave 428, 2
         +spawn E_LEADER, 120, P_LOOP_L
         +spawn E_LEADER, 50, P_LOOP_R
+        +wave 432, 2
+        +spawn E_ACE, 120, P_LOOP_L
+        +spawn E_ACE, 50, P_LOOP_R
 
-; r257: fast ace trio
-        +wave 422, 3
-        +spawn E_ACE, 30, P_DIVE_FAST
-        +spawn E_ACE, 86, P_DIVE_FAST
-        +spawn E_ACE, 142, P_DIVE_FAST
-
-; r267: rear attack and a gunship hover
-        +wave 437, 3
+; rear attack around a hovering gunship
+        +wave 458, 3
         +spawn E_RAIDER_UP, 30, P_RISE
         +spawn E_RAIDER_UP, 142, P_RISE
         +spawn E_GUNSHIP, 86, P_HOVER
+        +wave 461, 2
+        +spawn E_RAIDER_UP, 58, P_RISE
+        +spawn E_RAIDER_UP, 114, P_RISE
 
-; r283: weaving aces
-        +wave 461, 3
+; weaving aces
+        +wave 480, 3
         +spawn E_ACE, 40, P_WEAVE
         +spawn E_ACE, 86, P_WEAVE
         +spawn E_ACE, 132, P_WEAVE
 
-; r303: ace crossfire
-        +wave 491, 2
+; ace crossfire
+        +wave 508, 1
         +spawn E_ACE, 0, P_CROSS_R
+        +wave 509, 1
+        +spawn E_ACE, 0, P_CROSS_R
+        +wave 511, 1
+        +spawn E_ACE, 171, P_CROSS_L
+        +wave 512, 1
         +spawn E_ACE, 171, P_CROSS_L
 
-; r314: dive-bomber trio
-        +wave 507, 3
-        +spawn E_DIVER, 30, P_DIVEBOMB
+; dive-bombers: a V
+        +wave 526, 1
         +spawn E_DIVER, 86, P_DIVEBOMB
-        +spawn E_DIVER, 142, P_DIVEBOMB
+        +wave 528, 2
+        +spawn E_DIVER, 56, P_DIVEBOMB
+        +spawn E_DIVER, 116, P_DIVEBOMB
 
-; r328: leaders swoop, a gunship dives (medals!)
-        +wave 528, 3
+; leaders swoop out (medals!), then gunships dive
+        +wave 532, 2
         +spawn E_LEADER, 130, P_SWOOP_L
         +spawn E_LEADER, 30, P_SWOOP_R
+        +wave 548, 1
         +spawn E_GUNSHIP, 86, P_DIVE_FAST
+        +wave 550, 2
+        +spawn E_GUNSHIP, 58, P_DIVE_FAST
+        +spawn E_GUNSHIP, 114, P_DIVE_FAST
 
-; r346: last stand: fast aces
-        +wave 555, 3
-        +spawn E_ACE, 40, P_DIVE_FAST
+; last stand: a V of fast aces
+        +wave 562, 1
         +spawn E_ACE, 86, P_DIVE_FAST
-        +spawn E_ACE, 132, P_DIVE_FAST
+        +wave 564, 2
+        +spawn E_ACE, 66, P_DIVE_FAST
+        +spawn E_ACE, 106, P_DIVE_FAST
 
         +waves_end

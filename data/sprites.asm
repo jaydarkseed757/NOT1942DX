@@ -753,45 +753,56 @@ PTR_DIVER = SPR_PTR0 + (spr_diver - SPRITES) / 64
         +spr_end
 
 ; -----------------------------------------------------------------------------
-; Boss 4 "Kraken": the enemy flagship, a battleship seen broadside (bow left),
-; with two forward turrets, an aft turret, the bridge and funnel, and its
-; bow wave and wake. Three X+Y expanded sprites, drawn as one 36-pixel-wide
-; picture split in three:
+; Boss 4 "Kraken": the enemy flagship, a battleship seen from above, bow LEFT,
+; lit from the top left: three twin-gun turrets (A and B forward, X aft),
+; the bridge tower and funnel amidships, secondary guns along the sides, a
+; bow wave. Three X+Y expanded sprites side by side (144x42 px), drawn as one
+; 36x21-pixel picture (made with a script, then kept here as the master copy).
 ;
-;   .........ddddddddddddddddddddddd....
-;   .......ddiiiiiiiiiiiiiiddiiiiiiidd..
-;   .....ddiiiiiiiiiiidwwwdddiiiiiiiid.w
-;   w..ddiiiiwwwiiwwwiwwdwwiiiwwwiiiidww
-;   wwdiiidddwdwddwdwiwdddwiiiwdwdddidw.
-;   w.diiiiiiwwwiiwwwiwwdwwiiiwwwiiiidww
-;   ...ddiiiiiiiiiiiiidwwwdiiiiiiiiiid.w
-;   .....ddiiiiiiiiiiiiiiiiddiiiiiiiid..
-;   .......ddiiiiiiiiiiiiiiiiiiiiiiiid..
-;   .........ddiiiiiiiiiiiiiiiiiiiiidd..
-;   ...........ddddddddddddddddddddd....
+;   ....................................
+;   ....................................
+;   ........wwwwwwwwwwwwwwwwwwwwwwwwd...
+;   .......wiiiiiiiiiiiiiiiiiiiiiiiiid..
+;   ......dwiiiidwiiiiidwiiiiiiiidwiiid.
+;   .....wiiiiiiiiiiiiiiiiiiiiiiiiiiiid.
+;   ....wiiiiiiiiiiiiiiiiiwwdiiiiiiiiid.
+;   w.wwiiiiiiiiiiiiiiiiiiwidiiiiiiiiidw
+;   .wwiiiiiiiiddiiiiiddiiwdddiiddiiiidw
+;   .wiiiddddidwddddidwiiiwiddidwiiidddd
+;   diiiiiiiidwiiididwiiidwididwiiidiiid
+;   .diiiddddididdddidiidiwdddidiididddd
+;   .wdiiiiiiiiddiiiiiddiiwiddiiddiiiiid
+;   w.wdiiiiiiiiiiiiiiiiiiwdddiiiiiiiid.
+;   ....diiiiiiiiiiiiiiiiiwidiiiiiiiiid.
+;   .....diiiiiiiiiiiiiiiiwddiiiiiiiiid.
+;   ......ddiiiiddiiiiiddiiiiiiiiddiiid.
+;   .......diiiiiiiiiiiiiiiiiiiiiiiiid..
+;   ........ddddddddddddddddddddddddd...
+;   ....................................
+;   ....................................
 ; -----------------------------------------------------------------------------
 spr_boss4_l
 PTR_BOSS4_L = SPR_PTR0 + (spr_boss4_l - SPRITES) / 64
         +spr_begin
         +spr "............"     ;  0
         +spr "............"     ;  1
-        +spr "............"     ;  2
-        +spr ".........ddd"     ;  3
-        +spr ".......ddiii"     ;  4
-        +spr ".....ddiiiii"     ;  5
-        +spr "w..ddiiiiwww"     ;  6
-        +spr "wwdiiidddwdw"     ;  7
-        +spr "w.diiiiiiwww"     ;  8
-        +spr "...ddiiiiiii"     ;  9
-        +spr ".....ddiiiii"     ; 10
-        +spr ".......ddiii"     ; 11
-        +spr ".........ddi"     ; 12
-        +spr "...........d"     ; 13
-        +spr "............"     ; 14
-        +spr "............"     ; 15
-        +spr "............"     ; 16
-        +spr "............"     ; 17
-        +spr "............"     ; 18
+        +spr "........wwww"     ;  2
+        +spr ".......wiiii"     ;  3
+        +spr "......dwiiii"     ;  4
+        +spr ".....wiiiiii"     ;  5
+        +spr "....wiiiiiii"     ;  6
+        +spr "w.wwiiiiiiii"     ;  7
+        +spr ".wwiiiiiiiid"     ;  8
+        +spr ".wiiiddddidw"     ;  9
+        +spr "diiiiiiiidwi"     ; 10
+        +spr ".diiiddddidi"     ; 11
+        +spr ".wdiiiiiiiid"     ; 12
+        +spr "w.wdiiiiiiii"     ; 13
+        +spr "....diiiiiii"     ; 14
+        +spr ".....diiiiii"     ; 15
+        +spr "......ddiiii"     ; 16
+        +spr ".......diiii"     ; 17
+        +spr "........dddd"     ; 18
         +spr "............"     ; 19
         +spr "............"     ; 20
         +spr_end
@@ -801,23 +812,23 @@ PTR_BOSS4_M = SPR_PTR0 + (spr_boss4_m - SPRITES) / 64
         +spr_begin
         +spr "............"     ;  0
         +spr "............"     ;  1
-        +spr "............"     ;  2
-        +spr "dddddddddddd"     ;  3
-        +spr "iiiiiiiiiiid"     ;  4
-        +spr "iiiiiidwwwdd"     ;  5
-        +spr "iiwwwiwwdwwi"     ;  6
-        +spr "ddwdwiwdddwi"     ;  7
-        +spr "iiwwwiwwdwwi"     ;  8
-        +spr "iiiiiidwwwdi"     ;  9
-        +spr "iiiiiiiiiiid"     ; 10
-        +spr "iiiiiiiiiiii"     ; 11
-        +spr "iiiiiiiiiiii"     ; 12
-        +spr "dddddddddddd"     ; 13
-        +spr "............"     ; 14
-        +spr "............"     ; 15
-        +spr "............"     ; 16
-        +spr "............"     ; 17
-        +spr "............"     ; 18
+        +spr "wwwwwwwwwwww"     ;  2
+        +spr "iiiiiiiiiiii"     ;  3
+        +spr "dwiiiiidwiii"     ;  4
+        +spr "iiiiiiiiiiii"     ;  5
+        +spr "iiiiiiiiiiww"     ;  6
+        +spr "iiiiiiiiiiwi"     ;  7
+        +spr "diiiiiddiiwd"     ;  8
+        +spr "ddddidwiiiwi"     ;  9
+        +spr "iididwiiidwi"     ; 10
+        +spr "ddddidiidiwd"     ; 11
+        +spr "diiiiiddiiwi"     ; 12
+        +spr "iiiiiiiiiiwd"     ; 13
+        +spr "iiiiiiiiiiwi"     ; 14
+        +spr "iiiiiiiiiiwd"     ; 15
+        +spr "ddiiiiiddiii"     ; 16
+        +spr "iiiiiiiiiiii"     ; 17
+        +spr "dddddddddddd"     ; 18
         +spr "............"     ; 19
         +spr "............"     ; 20
         +spr_end
@@ -827,19 +838,49 @@ PTR_BOSS4_R = SPR_PTR0 + (spr_boss4_r - SPRITES) / 64
         +spr_begin
         +spr "............"     ;  0
         +spr "............"     ;  1
-        +spr "............"     ;  2
-        +spr "dddddddd...."     ;  3
-        +spr "diiiiiiidd.."     ;  4
-        +spr "diiiiiiiid.w"     ;  5
-        +spr "iiwwwiiiidww"     ;  6
-        +spr "iiwdwdddidw."     ;  7
-        +spr "iiwwwiiiidww"     ;  8
-        +spr "iiiiiiiiid.w"     ;  9
-        +spr "diiiiiiiid.."     ; 10
-        +spr "iiiiiiiiid.."     ; 11
-        +spr "iiiiiiiidd.."     ; 12
-        +spr "dddddddd...."     ; 13
-        +spr "............"     ; 14
+        +spr "wwwwwwwwd..."     ;  2
+        +spr "iiiiiiiiid.."     ;  3
+        +spr "iiiiidwiiid."     ;  4
+        +spr "iiiiiiiiiid."     ;  5
+        +spr "diiiiiiiiid."     ;  6
+        +spr "diiiiiiiiidw"     ;  7
+        +spr "ddiiddiiiidw"     ;  8
+        +spr "ddidwiiidddd"     ;  9
+        +spr "didwiiidiiid"     ; 10
+        +spr "ddidiididddd"     ; 11
+        +spr "ddiiddiiiiid"     ; 12
+        +spr "ddiiiiiiiid."     ; 13
+        +spr "diiiiiiiiid."     ; 14
+        +spr "diiiiiiiiid."     ; 15
+        +spr "iiiiiddiiid."     ; 16
+        +spr "iiiiiiiiid.."     ; 17
+        +spr "ddddddddd..."     ; 18
+        +spr "............"     ; 19
+        +spr "............"     ; 20
+        +spr_end
+
+; -----------------------------------------------------------------------------
+; Ace (level 4): a late-war fighter, nose DOWN: a long nose, clipped wings,
+; a big propeller. Lit from the top left. Rows 0-14 (ENEMY_H).
+; -----------------------------------------------------------------------------
+spr_ace
+PTR_ACE = SPR_PTR0 + (spr_ace - SPRITES) / 64
+        +spr_begin
+        +spr "....dwwd...."     ;  0
+        +spr ".....ii....."     ;  1
+        +spr ".....ii....."     ;  2
+        +spr ".....ii....."     ;  3
+        +spr "....dwwd...."     ;  4
+        +spr "....dwid...."     ;  5
+        +spr "dwwwwiiwwwwd"     ;  6
+        +spr "diiiiiiiiiid"     ;  7
+        +spr ".dddiiiiddd."     ;  8
+        +spr ".....ii....."     ;  9
+        +spr ".....ii....."     ; 10
+        +spr "....wiid...."     ; 11
+        +spr "....wiid...."     ; 12
+        +spr "..dddddddd.."     ; 13
+        +spr ".....dd....."     ; 14
         +spr "............"     ; 15
         +spr "............"     ; 16
         +spr "............"     ; 17
