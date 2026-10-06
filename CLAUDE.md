@@ -55,7 +55,7 @@ DX is built in milestones (details in `PLAN.md`):
   - M11: detection and build (done): `make turbo`, turbo detection at boot (`src/turbo.asm`), a "set turbo in the OSD" screen below 2x, the speed on the title
   - M12: turbo features (done): 34-50 extra enemies a level, boss bullet patterns (sweeps, bursts), 10 enemy-bullet slots; the stock build is byte for byte unchanged
   - M13: testing (done): the user checked everything in `MISTER-TEST.md` on a MiSTer (detection in Off / Smart / C128 mode, play at 2x-4x); the turbo build stops with a message on a real C128 (its `$D02F` reads back)
-  - M14: parallax clouds (done, awaiting the user's test): a cloud layer drawn with chars, drifting at twice the map's speed (`src/parallax.asm`), turbo build only
+  - M14: parallax clouds (done, checked on the user's MiSTer): a cloud layer drawn with chars, drifting at twice the map's speed (`src/parallax.asm`), turbo build only
 
 After each milestone, make sure it assembles with no errors or warnings, then stop and tell the user what to test in VICE, with likely bugs ranked by severity. Don't start the next milestone until the user says so. Commit only when the user asks.
 
