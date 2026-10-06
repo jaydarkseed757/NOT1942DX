@@ -39,6 +39,9 @@ entry
         jsr hud_clear           ; HUD_BUF is plain RAM: start it blank
         jsr mux_init            ; (before cli: the frame IRQ shows sprites)
         jsr chase_gen           ; the colour RAM chase code (scroll.asm)
+!ifdef TURBO {
+        jsr turbo_detect        ; the MiSTer turbo build: turbo on, or wait
+}
         jsr music_init          ; (before cli: the IRQ calls the player)
         jsr init_irq            ; raster IRQ at IRQ_LINE
 !ifdef PROFILE {
@@ -201,6 +204,9 @@ debug_hex
 !source "src/unpack.asm"
 !source "src/anim.asm"
 !source "src/ending.asm"
+!ifdef TURBO {
+!source "src/turbo.asm"         ; the MiSTer turbo build only
+}
 
 code_end
 !if code_end > VIC_BASE {

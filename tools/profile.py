@@ -37,6 +37,8 @@ def main():
     ap.add_argument("--level", type=int, default=1, help="start level (1-4)")
     ap.add_argument("--boss", action="store_true", help="BOSS_TEST: bosses at once")
     ap.add_argument("-D", action="append", default=[], help="extra ACME define")
+    ap.add_argument("--emu", default="x64sc",
+                    help="emulator: xscpu64 (a 20 MHz SuperCPU) for the turbo build, with -D TURBO=1")
     ap.add_argument("--finale-frames", type=int, default=90,
                     help="frames to run the finale before reading it (fire is "
                          "accepted after GO_DELAY = 100 frames and restarts the game)")
@@ -50,7 +52,7 @@ def main():
                     "-o", prg, "src/main.asm"], cwd=ROOT, check=True)
     s = symbols(sym)
 
-    emu = start(prg)
+    emu = start(prg, emu=args.emu)
     mon = Mon()
     try:
         mon.cmd(f"break {s['prof_reset']:04x}")

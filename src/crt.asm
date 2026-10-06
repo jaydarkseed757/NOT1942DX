@@ -32,6 +32,15 @@
 
 !ifndef PRG_SIZE { !error "pass -DPRG_SIZE=<size of build/not1942dx-dev.prg>" }
 
+; The game file: the stock build, or with -DTURBO=1 the MiSTer turbo build.
+!macro game_binary .len, .offset {
+!ifdef TURBO {
+        !binary "build/not1942dx-turbo-dev.prg", .len, .offset
+} else {
+        !binary "build/not1942dx-dev.prg", .len, .offset
+}
+}
+
 GAME_LEN   = PRG_SIZE - 2           ; without the 2-byte load address
 BANK_SIZE  = $2000
 BANK0_GAME = BANK_SIZE - $100       ; bank 0 holds the boot page first
@@ -143,7 +152,7 @@ copier_end
 }
 !if * - .bank0 > $100 { !error "boot code is over one page" }
         !fill $100 - (* - .bank0), $ff
-        !binary "build/not1942dx-dev.prg", BANK0_GAME, 2
+        +game_binary BANK0_GAME, 2
 
 ; -----------------------------------------------------------------------------
 ; Banks 1 on: the rest of the game, the last one padded with $FF
@@ -152,9 +161,9 @@ copier_end
         +chip .b
         !set .start = BANK0_GAME + (.b - 1) * BANK_SIZE    ; offset in the game
         !if GAME_LEN - .start >= BANK_SIZE {
-                !binary "build/not1942dx-dev.prg", BANK_SIZE, 2 + .start
+                +game_binary BANK_SIZE, 2 + .start
         } else {
-                !binary "build/not1942dx-dev.prg", GAME_LEN - .start, 2 + .start
+                +game_binary GAME_LEN - .start, 2 + .start
                 !fill BANK_SIZE - (GAME_LEN - .start), $ff
         }
 }

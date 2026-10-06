@@ -32,6 +32,8 @@ Since M6 the profile counts the player's collision checks (`INVINCIBLE` now only
 - **Colour chase:** on the flip frame, straight-line code (generated into BSS at boot) copies colour RAM rows 0-22 just behind the raster, 8 cycles per byte (~7,600 in all), mostly in time the frame would otherwise spend waiting. When it can't keep up (sprites on every line steal bus cycles) it ends after the next IRQ; that's harmless, and f = 0 has room for it.
 - **Caveats:** the figures come from an auto-fire run with `INVINCIBLE` (the player is never hit, but its collision checks run). They include about 100-300 cycles of measuring overhead.
 
+**The turbo build** (`make turbo`, M11) on VICE's SuperCPU (20 MHz, the stand-in for the MiSTer's turbo modes): the busiest play frame takes about 1,130 cycles of real time (6% of a frame), the worst frame of any kind 5,857 (a level's set-up), the frame IRQ 211. On the MiSTer at 2x-4x, I/O (VIC and SID registers, colour RAM) still runs at 1 MHz, so expect much less gain than that: to be measured on the hardware (M13).
+
 ## Memory
 
 | Region | Size | Used | Free |

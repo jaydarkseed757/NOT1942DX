@@ -10,10 +10,12 @@ PORT = 6510
 PROMPT = re.compile(rb"\(C:\$[0-9a-f]{4}\) $")
 
 
-def start(prg, extra=(), port=PORT):
-    """Run x64sc (PAL, warp, no sound output) with the remote monitor on."""
+def start(prg, extra=(), port=PORT, emu="x64sc"):
+    """Run x64sc (PAL, warp, no sound output) with the remote monitor on.
+    emu="xscpu64" runs VICE's SuperCPU instead: a 20 MHz CPU with the C64's
+    VIC, SID and CIAs, a stand-in for the MiSTer's turbo modes."""
     return subprocess.Popen(
-        ["x64sc", "-default", "-pal", "-warp", "-sound", "-sounddev", "dummy",
+        [emu, "-default", "-pal", "-warp", "-sound", "-sounddev", "dummy",
          "+confirmonexit", "-autostartprgmode", "1",
          "-remotemonitor", "-remotemonitoraddress", f"ip4://127.0.0.1:{port}",
          *extra, "-autostart", prg],

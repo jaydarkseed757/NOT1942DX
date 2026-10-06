@@ -20,6 +20,8 @@ make crt        # build/not1942dx.crt: Magic Desk cartridge image (src/crt.asm)
 make run-crt    # boot x64sc with the cartridge plugged in
 make release    # everything that ships: .d64, compressed .prg, .crt
 make gen        # just the level packs (build/gen/levelN.asm), e.g. before a test build
+make turbo      # the MiSTer turbo build: build/not1942dx-turbo.{prg,d64,crt}
+make run-turbo  # the turbo build in xscpu64 (VICE's 20 MHz SuperCPU), real time
 make DEBUG=1 run  # red border bar = time spent in the main loop
 make clean
 ```
@@ -49,6 +51,7 @@ DX is built in milestones (details in `PLAN.md`):
   - M9: level 4 (done): the enemy fleet on a storm sea that moves faster than the ships (`scroll_down` animations), the ace's own sprite, boss 4 as a top-view battleship, waves for 6 alive
   - M10: balancing and release (done): boss HP about 2.7x (14-32 s of steady fire), version DX 1.0, the itch.io page rewritten for DX, release images checked (the compressed PRG unpacks to the dev build byte for byte; the disk image and the cartridge boot to the title)
 - **Phase 3, the MiSTer turbo build:** M11-M13.
+  - M11: detection and build (done): `make turbo`, turbo detection at boot (`src/turbo.asm`), a "set turbo in the OSD" screen below 2x, the speed on the title
 
 After each milestone, make sure it assembles with no errors or warnings, then stop and tell the user what to test in VICE, with likely bugs ranked by severity. Don't start the next milestone until the user says so. Commit only when the user asks.
 
@@ -86,6 +89,11 @@ The turbo build must therefore:
 - detect turbo at boot (`$D030` probe, then a timed RAM loop), and refuse to start below 2x with a message to set turbo in the OSD
 
 It is not meant for a real C128, whose VIC display breaks at 2 MHz.
+
+How the turbo build does it (M11, `src/turbo.asm`, only assembled with `-DTURBO=1`; the stock build is byte for byte the same without it):
+- `turbo_detect` runs at boot, before the IRQs start. It writes 0 to `$D030` and reads it back; bit 0 = 0 means the C128-mode register is there, so it writes 1 (turbo on). Then `turbo_measure` times a RAM-only loop (`TURBO_CYCLES`) against CIA1 timer A, which counts at 1 MHz in every mode, and rounds the ratio into `turbo_speed` (1 on a stock C64, 20 on VICE's SuperCPU).
+- Below `TURBO_MIN` (2) it shows a screen saying how to set turbo in the OSD, and re-checks both modes about once a second until turbo is on. The title's version text shows the speed ("dx 1.0 turbo 3x"; 10x and up show as "+x").
+- The game itself needs no changes to run in turbo: it waits for frames, the multiplexer and the colour chase follow the raster, and nothing counts cycles. M12 adds what the spare time can buy.
 
 ## Code conventions
 
@@ -138,6 +146,8 @@ Macros in `src/macros.asm` turn readable text into bytes and check it at assembl
   - To verify headless, record with `-sounddev wav -soundarg <file> +warp`. VICE writes no audio in warp mode.
 
 ## Verifying without the user
+
+**Turbo stand-in:** VICE's SuperCPU emulator, `xscpu64` (a 20 MHz CPU with the C64's VIC, SID and CIAs, so like the MiSTer's turbo, only faster), runs the turbo build: `tools/vicemon.py`'s `start(prg, emu="xscpu64")`, and `python3 tools/profile.py -D TURBO=1 --emu xscpu64`. The MiSTer's C128-mode register can't be tried in VICE; that, and the real speeds, are for the user's hardware.
 
 **Profiling:** `python3 tools/profile.py [--level N] [--boss]` builds a PROFILE test build, runs the whole game headless and prints, per level and ending part, the worst play frame, the worst frame of any kind, the frame IRQ, overruns (`play_over` must be 0), late colour chases (harmless), the most sprites in one frame and dropped sprites (must be 0). It stops at each `prof_reset` through VICE's remote monitor (`tools/vicemon.py`), so it needs no screenshot timing.
 

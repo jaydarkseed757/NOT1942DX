@@ -62,6 +62,7 @@ SPR0_Y      = $d001
 SPR_XMSB    = $d010
 VIC_CTRL1   = $d011         ; bit7 = raster bit 8, bit4 = screen on, bits0-2 yscroll
 VIC_RASTER  = $d012
+VIC_D030    = $d030         ; MiSTer C128 turbo mode: bit 0 = turbo (turbo.asm)
 SPR_ENABLE  = $d015
 VIC_CTRL2   = $d016         ; bit4 = multicolour, bit3 = 40 columns
 SPR_YEXP    = $d017

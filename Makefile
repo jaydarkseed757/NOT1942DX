@@ -14,6 +14,13 @@
 #   make run-crt  build the cartridge and boot x64sc with it plugged in
 #   make release  build everything that ships: the .d64, the compressed
 #                 .prg and the .crt
+#   make turbo    the MiSTer turbo build (-DTURBO=1, src/turbo.asm): the same
+#                 three files as release, named not1942dx-turbo.*
+#   make run-turbo  build the turbo PRG and run it in xscpu64, VICE's SuperCPU:
+#                 a 20 MHz CPU with the C64's VIC, SID and CIAs, the nearest
+#                 VICE has to the MiSTer's turbo (which it can't emulate: its
+#                 2x-4x and C128-mode register need the real core). Real time
+#                 (PAL, no warp), injected straight into RAM
 #   make gen      only build the level packs (build/gen/), for test builds
 #   make clean    remove build outputs
 #
@@ -21,6 +28,7 @@
 
 ACME  ?= acme
 X64   ?= x64sc
+XSCPU ?= xscpu64
 C1541 ?= c1541
 EXOMIZER ?= exomizer
 
@@ -30,6 +38,13 @@ D64  := build/not1942dx.d64
 CRT  := build/not1942dx.crt
 SYM  := build/not1942dx-dev.sym
 LST  := build/not1942dx-dev.lst
+
+# The MiSTer turbo build: the same game with turbo detection at boot.
+TPRG := build/not1942dx-turbo-dev.prg
+TCRUNCHED := build/not1942dx-turbo.prg
+TD64 := build/not1942dx-turbo.d64
+TCRT := build/not1942dx-turbo.crt
+TSYM := build/not1942dx-turbo-dev.sym
 
 PYTHON ?= python3
 
@@ -47,7 +62,7 @@ ifdef DEBUG
 ACMEFLAGS += -DDEBUG=1
 endif
 
-.PHONY: all gen crunch d64 crt release run run-d64 run-crt clean
+.PHONY: all gen crunch d64 crt release turbo run run-d64 run-crt run-turbo clean
 
 all: $(PRG)
 
@@ -63,7 +78,7 @@ gen: $(GEN)
 crunch: $(CRUNCHED)
 
 # sfx sys: a self-extracting PRG that finds our "SYS 2064" line and jumps
-# there after unpacking. -x1: flash the border while it unpacks (~1-2 s).
+# there after unpacking. -x1: flash the border while it unpacks (~5 s).
 # The unpacker handles the RAM under the BASIC ROM ($A000-) itself.
 $(CRUNCHED): $(PRG)
 	$(EXOMIZER) sfx sys -x1 -q -o $@ $<
@@ -82,6 +97,21 @@ $(CRT): $(PRG) src/crt.asm src/defs.asm
 
 release: $(D64) $(CRUNCHED) $(CRT)
 
+turbo: $(TD64) $(TCRUNCHED) $(TCRT)
+
+$(TPRG): $(SRC) $(GEN) Makefile | build
+	$(ACME) -f cbm --cpu 6502 -v1 -DTURBO=1 -l $(TSYM) -o $@ src/main.asm
+
+$(TCRUNCHED): $(TPRG)
+	$(EXOMIZER) sfx sys -x1 -q -o $@ $<
+
+$(TD64): $(TCRUNCHED)
+	rm -f $@
+	$(C1541) -format "not 1942 dx t,jd" d64 $@ -write $(TCRUNCHED) "not 1942 dx t"
+
+$(TCRT): $(TPRG) src/crt.asm src/defs.asm
+	$(ACME) -f plain -DTURBO=1 -DPRG_SIZE=$$(wc -c < $(TPRG) | tr -d ' ') -o $@ src/crt.asm
+
 # -pal: force PAL machine. +warp: make sure warp/turbo is off.
 # -autostartprgmode 1: inject the PRG straight into RAM (skips the slow
 # emulated disk load; the game itself still runs at real 1 MHz speed).
@@ -93,6 +123,11 @@ run-d64: $(D64)
 
 run-crt: $(CRT)
 	$(X64) -pal +warp -cartcrt $(CRT)
+
+# -speedswitch: the SuperCPU at 20 MHz (it would wait at the "set turbo"
+# screen at 1 MHz). -speed 100: emulate in real time.
+run-turbo: $(TPRG)
+	$(XSCPU) -pal +warp -speed 100 -speedswitch -autostartprgmode 1 -autostart $(TPRG)
 
 build:
 	mkdir -p build

@@ -106,7 +106,10 @@ M10 is balancing and release: `.d64`, a compressed `.prg` and a `.crt`. Update `
 
 ## Phase 3 — MiSTer turbo build (later)
 
-### M11. Detection and build
+### M11. Detection and build (done)
+
+Done as below, in `src/turbo.asm`. The speed is measured with CIA1 timer A (1 MHz in every mode) against a RAM-only loop, rounded to a whole number; below 2x the "set turbo" screen re-checks about once a second, so switching turbo on in the OSD starts the game. Checked in VICE: on x64sc the turbo build measures 1x and waits; on xscpu64 (SuperCPU, 20 MHz) it measures 20x and plays normally, with its busiest play frame at about 1,130 cycles of real time. The C128-mode register needs the real core.
+
 - `make turbo` builds with `-DTURBO=1` and produces `not1942dx-turbo.prg` and `.crt`.
 - **Detection at boot:** write 0 to `$D030` and read it back. If bit 0 is 0, the C128 turbo register is there: set `$D030 = 1`. Then measure a RAM-only loop between two raster lines; this catches Smart mode, and also reports the actual speed multiplier.
 - If the speed is below 2×, show "set Turbo in the MiSTer OSD (C128 or Smart)" and don't start the game.
