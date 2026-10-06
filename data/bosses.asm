@@ -9,6 +9,9 @@
 ;   w          width in half-X (the X clamp keeps x + w <= 172)
 ;   x          start X (half-X, left edge; must keep x + w <= 172)
 ;   hp         hits to destroy        hp_block  HP per block of the HUD bar
+;              (M10: about 15-30 s of steady fire at 6 shots a second, boss 1
+;              to 4; every shot hits bosses this big. HP <= 255; hp_block =
+;              HP / BAR_BLOCKS, rounded up, so the bar starts full)
 ;   phase2     switch to script 2 when HP falls below this
 ;   script     path: +path_start Y, then segments (data/waves.asm format)
 ;   script2    phase-2 segments (no start Y: it continues from where it is)
@@ -45,9 +48,9 @@ boss_t_parts_hi   !byte >boss1_parts,    >boss2_parts,       >boss3_parts,      
 boss_t_w          !byte 72,              72,                 72,                 72
 boss_t_col        !byte COL_GREEN,       COL_LGREY,          COL_CYAN,           COL_LGREY
 boss_t_x          !byte BOSS_X_MID,      BOSS_X_MID,         BOSS_X_MID,         BOSS_X_MID
-boss_t_hp         !byte 30,              42,                 50,                 64
-boss_t_hp_block   !byte 5,               7,                  9,                  11
-boss_t_phase2     !byte 15,              21,                 25,                 32
+boss_t_hp         !byte 80,              110,                136,                180
+boss_t_hp_block   !byte 14,              19,                 23,                 30
+boss_t_phase2     !byte 40,              55,                 68,                 90
 boss_t_script_lo  !byte <boss1_script,   <boss2_script,      <boss3_script,      <boss4_script
 boss_t_script_hi  !byte >boss1_script,   >boss2_script,      >boss3_script,      >boss4_script
 boss_t_script2_lo !byte <boss1_script2,  <boss2_script2,     <boss3_script2,     <boss4_script2

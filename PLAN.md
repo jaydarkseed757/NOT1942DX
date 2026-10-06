@@ -100,7 +100,9 @@ M6-M9 cover levels 1-4, one per milestone:
 
 **M9 (level 4, done):** `tools/art/level4_art.py` draws the enemy fleet: a storm-grey sea of one 2-char texture whose chars scroll down faster than the map (a new `scroll_down` animation mode), so the ships drawn on the map seem to steam forward; 27 destroyers, cruisers and carriers from 3 stamps, with foam and wakes; 6 storm clouds (129 chars, 2.1 KB packed). The ace has its own sprite. Boss 4 "Kraken" stays a sprite boss (the plan's char-based battleship would need hit tests against chars): a top-view battleship, 3 sprites at full height, three twin turrets and a bridge that fire. Waves: 96 enemies, at most 6 alive; the carriers launch fighters as they pass. Music, SFX and the ending text are reused (the ending text changes only on request).
 
-M10 is balancing and release: `.d64`, a compressed `.prg` and a `.crt`. The cartridge outgrows ACME's 64 KB limit, so a Python CRT packer builds a larger Magic Desk or EasyFlash image. Update `itch-description.html` and `BUDGET.MD`.
+M10 is balancing and release: `.d64`, a compressed `.prg` and a `.crt`. Update `itch-description.html` and `BUDGET.MD`.
+
+**M10 (done):** bosses had about 30-64 HP and, as big as they now are, every shot hits: they died in 6-11 s of steady fire. HP is now 80 / 110 / 136 / 180 (14 / 18 / 22 / 32 s at 6 shots a second, about twice that at 3). Version DX 1.0; the itch.io page describes DX. The game still fits the 7-bank Magic Desk cartridge (49,971 of 57,088 bytes), so the planned bigger-cartridge packer isn't needed. Checked: the compressed PRG unpacks to the dev build byte for byte, and the disk image and the cartridge both boot to the title.
 
 ## Phase 3 — MiSTer turbo build (later)
 

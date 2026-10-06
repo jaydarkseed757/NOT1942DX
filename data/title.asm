@@ -61,5 +61,5 @@ title_pause     !scr "p: pause"
 TITLE_PAUSE_LEN = * - title_pause
 
 ; Version, top right of the title screen. Change it for each release.
-title_version   !scr "dx 0.1"
+title_version   !scr "dx 1.0"
 TITLE_VERSION_LEN = * - title_version

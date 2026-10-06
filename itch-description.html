@@ -1,36 +1,47 @@
-<h2>NOT 1942</h2>
-<p><em>by JDC &middot; version 1.1</em></p>
+<h2>NOT 1942 DX</h2>
+<p><em>by JDC &middot; version DX 1.0</em></p>
 
-<p><strong>NOT 1942</strong> is a vertically scrolling shoot-'em-up for the Commodore 64, inspired by the arcade classic <em>1942</em> and written from scratch in 6502 assembly.</p>
+<p><strong>NOT 1942 DX</strong> is the deluxe remake of <strong>NOT 1942</strong>, a vertically scrolling shoot-'em-up for the Commodore 64 inspired by the arcade classic <em>1942</em>. It keeps the game: four levels, four bosses, the music and the controls. Everything you see is new: smooth scrolling, far more on screen at once, and redrawn levels, planes and bosses. Written from scratch in 6502 assembly.</p>
 
-<p>Fly a twin-boom fighter across four battlegrounds and take on waves of scripted enemy squadrons:</p>
+<p>Fly a twin-boom fighter across four battlegrounds against squadrons that fly in formation:</p>
 <ul>
-  <li>Fighters that dive, swoop, loop and zig-zag</li>
-  <li>Leaders that hover and fire aimed shots</li>
-  <li>Raiders that climb up from behind</li>
-  <li>Dive bombers, heavy gunships and enemy aces</li>
+  <li>Fighters in V's, echelons and strings that dive, swoop, loop and zig-zag</li>
+  <li>Leaders with wingmen, and gunships that hover and fire aimed shots</li>
+  <li>Raiders that climb up from behind you</li>
+  <li>Dive bombers, and enemy aces in their own fast fighters</li>
   <li>Red leaders that drop <strong>gold medals</strong> worth 500 points when shot down</li>
 </ul>
 
-<p>You have three lives, one hit kills, and a short blinking invulnerability after each respawn. A full run takes about seven minutes, if you can survive it.</p>
+<p>You have three lives, one hit kills, and a short blinking invulnerability after each respawn. A full run takes about eight minutes, if you can survive it.</p>
 
 <h3>Levels</h3>
-<p>Each level scrolls for about a minute and a half over its own hand-drawn landscape, then ends in a large boss fight with a health bar and two attack phases.</p>
+<p>Each level scrolls for about a minute and a half over its own landscape, then ends in a big boss fight with a health bar and two attack phases.</p>
 <ul>
-  <li><strong>Level 1: Open Ocean.</strong> Tropical islands, ending with the four-engine bomber <em>Thunder</em>.</li>
-  <li><strong>Level 2: Jungle Coast.</strong> Coastline, rivers, a village and an enemy airstrip, ending with the armoured airship <em>Leviathan</em>.</li>
-  <li><strong>Level 3: Sunset Strait.</strong> A narrow, winding strait between cliffs, past a lighthouse and wrecks, ending with the giant flying boat <em>Albatross</em>.</li>
-  <li><strong>Level 4: Enemy Fleet.</strong> A stormy sea full of destroyers, cruisers and an aircraft carrier, ending with the enemy flagship <em>Kraken</em>.</li>
+  <li><strong>Level 1: Open Ocean.</strong> Tropical islands with rolling surf and drifting clouds, ending with the four-engine bomber <em>Thunder</em>.</li>
+  <li><strong>Level 2: Jungle Coast.</strong> A jungle shore with rivers, a village and an enemy airstrip, ending with the armoured airship <em>Leviathan</em>.</li>
+  <li><strong>Level 3: Sunset Strait.</strong> A winding strait between sunlit cliffs, past anchored boats, gun pits and a blinking lighthouse, ending with the giant flying boat <em>Albatross</em>.</li>
+  <li><strong>Level 4: Enemy Fleet.</strong> Destroyers, cruisers and carriers steaming through a storm-grey sea, their fighters launching as you pass, ending with the enemy flagship <em>Kraken</em>.</li>
 </ul>
 <p>Beat all four and you'll see the ending.</p>
+
+<h3>What's new in DX</h3>
+<ul>
+  <li>Smooth scrolling, one pixel every frame, over the whole screen</li>
+  <li>A sprite multiplexer: up to 18 sprites on screen at once (the original had 8), so squadrons fly in real formations, up to six planes at a time</li>
+  <li>Redrawn levels with animated water and surf, clouds, and in level 4 a sea that moves past the ships</li>
+  <li>New planes, and bigger bosses (up to 144&times;84 pixels) with longer fights</li>
+  <li>Multi-stage explosions, screen shake, and fades between levels</li>
+  <li>The score and lives float over the playfield, so the whole screen is game</li>
+  <li>Press 1, 2, 3 or 4 on the title screen to practise that level's boss</li>
+</ul>
 
 <h3>Features</h3>
 <ul>
   <li>Original 3-voice SID music: a title song, a theme for each level and a boss theme</li>
   <li>Sound effects for explosions, medal pickups, boss hits and a big blast when a boss goes down, mixed in with the music</li>
   <li>Pause at any time, and an option to play with sound effects only</li>
-  <li>Runs on a stock PAL C64 at 1 MHz, using only the 8 hardware sprites</li>
-  <li>Loads as a single compressed 49-block file</li>
+  <li>Runs on a stock PAL C64 at 1 MHz</li>
+  <li>Loads as a single compressed 95-block file, or boots instantly from the cartridge image</li>
 </ul>
 
 <h3>Controls</h3>
@@ -39,22 +50,14 @@
   <li><strong>Keyboard:</strong> W A S D to move, Space to fire</li>
   <li><strong>P or RUN/STOP:</strong> pause and resume</li>
   <li><strong>M</strong> on the title screen: music on or off</li>
-</ul>
-
-<h3>What's new in 1.1</h3>
-<ul>
-  <li>Sound effects during play: enemy explosions, your ship going down, a chime for gold medals and a click for every hit on a boss</li>
-  <li>Pause with P or RUN/STOP</li>
-  <li>Music on/off with M on the title screen</li>
-  <li>The version number is shown on the title screen</li>
-  <li>Fix: the GAME OVER screen no longer shows a leftover "LEVEL CLEAR"</li>
-  <li>New download: a cartridge image (<code>.crt</code>) that boots straight into the game</li>
+  <li><strong>1-4</strong> on the title screen: go straight to that level's boss</li>
 </ul>
 
 <h3>How to play</h3>
 <p>Download the disk image (<code>.d64</code>) and load it on a real C64 or in an emulator such as VICE:</p>
-<pre>LOAD"NOT 1942",8,1
+<pre>LOAD"NOT 1942 DX",8,1
 RUN</pre>
+<p>On a stock 1541 drive it takes about a minute to load; a fast loader cartridge or JiffyDOS makes that much shorter.</p>
 <p>The <code>.prg</code> file is the same game, for emulators that start a program file directly.</p>
 <p>The <code>.crt</code> file is a cartridge image (Magic Desk type): attach it in your emulator, or flash it to a cartridge, and the game starts at power-on with no loading.</p>
 <p>Needs a PAL machine, or an emulator set to PAL; NTSC isn't supported.</p>

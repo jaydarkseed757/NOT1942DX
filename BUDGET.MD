@@ -1,6 +1,6 @@
 # NOT 1942 DX: resource budgets
 
-Measured on 2026-10-05 after DX milestone M9 (smooth scroll, sprite multiplexer, sprite HUD, streamed level maps, effects; all four levels remastered with new art, sprites, bosses and 83-96-enemy waves). Target: a stock PAL C64 at 1 MHz.
+Measured on 2026-10-06 for DX 1.0 (milestone M10: smooth scroll, sprite multiplexer, sprite HUD, streamed level maps, effects; all four levels remastered with new art, sprites, bosses and 83-96-enemy waves; boss HP raised for longer fights). Target: a stock PAL C64 at 1 MHz.
 
 ## CPU
 
@@ -10,11 +10,11 @@ The table shows the worst frame in each part of the game, counted from the start
 
 | Part | Worst frame (cycles) | Share of the frame | Boss straight away (`--boss`) | After M6 | After M5 | NOT 1942 1.1 |
 |---|---:|---:|---:|---:|---:|---:|
-| Title screen | (not re-measured) | | | | | 2,276 |
-| Level 1 | 17,516 | 89% | 18,676 | 17,895 | 17,668 | 6,507 |
-| Level 2 | 17,628 | 90% | 17,389 | 15,967 | 16,063 | 6,588 |
-| Level 3 | 17,867 | 91% | 17,323 | 14,874 | 14,724 | 5,995 |
-| Level 4 | 17,739 | 90% | 18,309 | 17,845 | 16,698 | 7,080 |
+| Title screen | 4,895 | 25% | | | | 2,276 |
+| Level 1 | 18,378 | 93% | 18,405 | 17,895 | 17,668 | 6,507 |
+| Level 2 | 16,648 | 85% | 15,926 | 15,967 | 16,063 | 6,588 |
+| Level 3 | 17,871 | 91% | 17,177 | 14,874 | 14,724 | 5,995 |
+| Level 4 | 17,944 | 91% | 17,804 | 17,845 | 16,698 | 7,080 |
 | Victory screen | 1,869 | 10% | | 1,977 | 1,986 | 1,382 |
 | Credits roll | 5,992 | 30% | | 6,143 | 6,145 | 5,314 |
 | Finale scroller | 11,721 | 60% | | 11,840 | 11,847 | 10,956 |
@@ -22,7 +22,7 @@ The table shows the worst frame in each part of the game, counted from the start
 Since M6 the profile counts the player's collision checks (`INVINCIBLE` now only skips the dying), which is most of level 4's rise; the M5 figures left them out.
 
 - **No dropped frames** in gameplay or the ending: zero play overruns in all four levels and all four boss fights, and no sprite was ever dropped (up to 18 on screen). The only frames that run long are the deliberate screen builds with the display off.
-- **Headroom is about 1,800 cycles in the busiest frames** (a 4-row slice, 8 map chars unpacked, 17-18 sprites). Starting boss 1 straight away (`--boss`, so it meets the level-start fade) reaches 18,673 (95%); the fight in a normal run stays at the figure above.
+- **Headroom is about 1,250 cycles in the busiest frames** (a 4-row slice, 8 map chars unpacked, 17-18 sprites), in boss 1's fight (the longer M10 fights give its busy moments more chances to coincide).
 - **Sprites are the price of everything.** Each sprite on screen costs ~300 cycles a frame: ~150 in `mux_build` (keys, sort, list entry), ~100-150 in the multiplexer's IRQs, plus its own logic and collision tests. M6 had to pay for its bigger waves and boss: the score redraws at most one digit a frame (~360 cycles each), the collision loops test the boxes inline against a per-bullet top and left (~35 cycles a pair apart vertically), and boss 1 is 4 sprites, not 6 (everything but its tail fits the lower sprite row). A 6-part boss with 6 shots out overran.
 - **Formations and the 8-per-line limit:** a line abreast of 4 that fires together puts 4 planes and 4 shots in one 21-line band, plus the player's shots: more than 8, so sprites drop. Level 1's waves use echelons and spread V's instead (two rows between ranks). A boss's lower sprite row must start below line 68: the 4 HUD sprites hold their hardware sprites until line 65, and a reused one needs 3 lines (`MUX_SETUP`); `data/bosses.asm` checks this at assembly. Without a boss the bar's sprite is off and its list entry goes to the sorted sprites (M7), so 5 hardware sprites are free beside the HUD, where formations enter: 4 planes entering together plus a player bullet fit.
 - **M5's effects** cost little: animated chars ~150 cycles per char rewritten (at most 2 a frame; level 4's sea rewrites 2 every other frame), the fade ~200 on a step frame, the shake ~30 in the frame IRQ.
@@ -47,6 +47,7 @@ Since M6 the profile counts the player's collision checks (`INVINCIBLE` now only
 | RAM under I/O and KERNAL, `$D000-$FFF9` | ~12 KB | BSS `$E000-$FBB6` (`bss_end`: tables 1.5 KB + the generated colour chase 5.5 KB), IRQ vectors | **~0.8 KB** BSS (`$FBB7-$FEFF`) + `$D000-$DFFF` under I/O (4 KB) |
 | Disk (compressed program) | 664 blocks | 95 | 569 |
 | Cartridge (Magic Desk, uncompressed game) | 7 banks (57,088 B of game; ACME's 64 KB output limit) | 7 (49,971 B) | **7.1 KB** |
+| Unpacking (the compressed `.prg`) | | ~5.0 M cycles, about 5 s on a C64 | |
 
 The level packs (all four remastered):
 
