@@ -300,10 +300,6 @@ level3_waves
         +wave 528, 1
         +spawn E_GUNSHIP, 86, P_HOVER
 
-; turbo build: a pair (raider_up, rise)
-        +wave_turbo 535, 2
-        +spawn_turbo E_RAIDER_UP, 58, P_RISE
-        +spawn_turbo E_RAIDER_UP, 114, P_RISE
 
 ; last stand: weaving fighters
         +wave 548, 3

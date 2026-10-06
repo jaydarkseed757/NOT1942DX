@@ -7,7 +7,7 @@
 ;
 ; Layout (screen rows): 0 version (top right), 3-7 logo, 8-10 "DX", 12 "by jdc", ship bobbing around row 14, 19 "press fire to
 ; start" (blinking), 22 controls, 24 "m: music on/off" and "p: pause".
-; Every TITLE_FLYBY frames a V of three fighters dives across the screen. M switches the music on or off for
+; An air show of formations flies past (data/title_shows.asm). M switches the music on or off for
 ; the whole session (music_off); sound effects play either way. Keys 1-4
 ; start a game at that level with its boss straight away (practice).
 ; Text is hires, so its colour RAM is set here; new_game -> init_video
@@ -21,9 +21,7 @@ DX_H            = 3             ; "DX" height in screen rows (data/title.asm)
 TITLE_LOGO_ROW  = 3
 TITLE_DX_ROW    = TITLE_LOGO_ROW + LOGO_H
 TITLE_BY_ROW    = 12
-TITLE_FLYBY     = 250           ; frames between flybys
-TITLE_FLY_FIRST = 50            ; ...and before the first
-TITLE_FLY_DY    = 2             ; their speed, pixels per frame
+TITLE_FLY_FIRST = 50            ; frames before the air show's first planes
 TITLE_PRESS_ROW = 19
 TITLE_HELP_ROW  = 22
 TITLE_KEYS_ROW  = 24
@@ -61,8 +59,15 @@ title_enter
         dex
         bpl -
 }
-        lda #TITLE_FLY_FIRST
+        lda #TITLE_FLY_FIRST    ; the air show: from the top, soon
         sta title_fly_timer
+        lda #<title_shows
+        sta title_fly_ptr
+        lda #>title_shows
+        sta title_fly_ptr+1
+        jsr init_enemies        ; (the planes are enemies, on their paths)
+        lda #0
+        sta boss_state          ; (enemies_update stands still for a boss)
         ; --- text lines ---
         +print_both TITLE_BY_ROW, (COLS - TITLE_BY_LEN) / 2, title_by, TITLE_BY_LEN
         +print_both TITLE_PRESS_ROW, (COLS - TITLE_PRESS_LEN) / 2, title_press, TITLE_PRESS_LEN
@@ -157,45 +162,50 @@ title_update
         jmp music_start         ;   music_start leaves the player idle
 +       rts
 
-; title_flyby: three fighters in a V dive down the screen every TITLE_FLYBY
-; frames, using the first three enemy slots. Clobbers A, X.
-title_fly_timer !byte 1
+; title_flyby: the air show (data/title_shows.asm): spawn each group of
+; planes when its wait is up, then fly them all on their paths (the
+; enemies' own code: they don't fire outside play). Clobbers A, X, Y,
+; zp_ptr0, zp_ptr1, zp_tmp1.
+title_fly_timer !byte 1         ; frames to the next group
+title_fly_ptr   !word title_shows   ; it (its wait byte)
 title_flyby
         dec title_fly_timer
-        bne +
-        lda #TITLE_FLYBY
-        sta title_fly_timer
-        ldx #2                  ; launch the V just above the screen
--       lda .fly_x,x
-        sta spr_xh + SLOT_ENEMY0,x
-        lda .fly_y,x
-        sta spr_y + SLOT_ENEMY0,x
-        lda #PTR_FIGHTER
-        sta spr_ptr + SLOT_ENEMY0,x
-        lda #COL_GREEN
-        sta spr_col + SLOT_ENEMY0,x
-        lda #1
-        sta spr_on + SLOT_ENEMY0,x
-        dex
-        bpl -
-+       ldx #2
--       lda spr_on + SLOT_ENEMY0,x
-        beq +
-        lda spr_y + SLOT_ENEMY0,x
+        bne .fly
+        lda title_fly_ptr       ; the group: a wave record after its wait
         clc
-        adc #TITLE_FLY_DY
-        sta spr_y + SLOT_ENEMY0,x
-        cmp #PLAY_Y_END + 4     ; off the bottom
+        adc #1
+        sta rec_ptr
+        lda title_fly_ptr+1
+        adc #0
+        sta rec_ptr+1
+        ldy #WAVE_HEAD - 1      ; its spawn count
+        lda (rec_ptr),y
+        sta rec_spawns
+        sta zp_tmp0             ; the next group: after its 3-byte entries
+        asl
+        adc zp_tmp0             ; (count * 3, carry clear: count <= 8)
+        adc #1 + WAVE_HEAD
+        adc title_fly_ptr
+        sta title_fly_ptr
         bcc +
-        lda #0
-        sta spr_on + SLOT_ENEMY0,x
-+       dex
-        bpl -
-        rts
-.fly_x  !byte (SCREEN_X_MIN + SCREEN_X_MAX - 12) / 2 - 20
-        !byte (SCREEN_X_MIN + SCREEN_X_MAX - 12) / 2
-        !byte (SCREEN_X_MIN + SCREEN_X_MAX - 12) / 2 + 20
-.fly_y  !byte 18, 30, 18        ; the leader in front
+        inc title_fly_ptr+1
++       jsr enemies_spawn
+        lda title_fly_ptr       ; its wait (or the end: round again)
+        sta zp_ptr0
+        lda title_fly_ptr+1
+        sta zp_ptr0+1
+        ldy #0
+        lda (zp_ptr0),y
+        cmp #$ff
+        bne +
+        lda #<title_shows
+        sta title_fly_ptr
+        lda #>title_shows
+        sta title_fly_ptr+1
+        lda title_shows
++       sta title_fly_timer
+.fly    jmp enemies_update
+!if SPAWN_LEN != 3 { !error "title_flyby: the entry size assumes 3 bytes a spawn" }
 
 ; title_music_text: "m: music on" / "m: music off" on the title screen.
 ; Clobbers A, X.

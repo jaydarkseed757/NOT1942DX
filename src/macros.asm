@@ -80,6 +80,24 @@ IS_TURBO = 0
 }
 }
 
+; The title's air show (data/title_shows.asm): wave records with a delay.
+;   +title_wave WAIT, N         N spawns (+spawn lines) WAIT frames after the
+;                               previous group (1-254)
+;   +title_shows_end            then it starts again
+!macro title_wave .wait, .n {
+        !if WAVE_LEFT != 0 { !error "previous +title_wave is missing +spawn lines" }
+        !if (.wait < 1) | (.wait > 254) { !error "+title_wave: wait 1-254 frames" }
+        !if (.n < 1) | (.n > ENEMY_COUNT) { !error "+title_wave: 1 to ENEMY_COUNT spawns" }
+        !byte .wait
+        !word 0                 ; (a wave record's row: unused here)
+        !byte .n
+        !set WAVE_LEFT = .n
+}
+!macro title_shows_end {
+        !if WAVE_LEFT != 0 { !error "the last +title_wave is missing +spawn lines" }
+        !byte $ff
+}
+
 !macro waves_end {
         !if WAVE_LEFT != 0 { !error "the last +wave is missing +spawn lines" }
         !word WAVE_END

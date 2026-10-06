@@ -69,7 +69,10 @@ enemy_fire
         lda #EB_SPAWN_DY
         sta aim_offy
 enemy_fire_at
-        jsr gun_position
+        lda game_mode           ; only in play (the title's air show flies
+        beq +                   ;   the same paths, without firing)
+        rts
++       jsr gun_position
         bcs +
         rts                     ; gun off screen
 +       jsr eb_free_slot        ; -> Y, or C=0 if none
@@ -174,7 +177,10 @@ enemy_fire_at
 
 !zone enemy_spread
 enemy_spread
-        jsr gun_position
+        lda game_mode           ; only in play
+        beq +
+        rts
++       jsr gun_position
         bcc .done
         stx aim_slot
         lda #$80                ; both shots go downward

@@ -261,6 +261,7 @@ turbo_end                       ;   map overwrites it
 
 * = DATA2_BASE                  ; waves, bosses, level packs
 !source "data/waves.asm"        ; enemy types + paths (levels refer to them)
+!source "data/title_shows.asm"  ; the title's air show (uses the paths)
 !source "data/bosses.asm"
 !source "build/gen/level1.asm"  ; level packs, made from data/levels/*.png
 !source "build/gen/level2.asm"  ;   by tools/png2level.py (see the Makefile)

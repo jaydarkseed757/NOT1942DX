@@ -14,20 +14,21 @@ E_RAIDER_UP = 3                 ; the same, nose up: for attacks from behind
 E_GUNSHIP   = 4                 ; white heavy twin-engine fighter (level 2)
 E_DIVER     = 5                 ; cyan gull-winged dive bomber (level 3)
 E_ACE       = 6                 ; yellow fighter: an ace (level 4)
-ENEMY_TYPES = 7
+E_P38       = 7                 ; a friendly P-38, nose up: the title's air show
+ENEMY_TYPES = 8
 
-;                fighter      leader      raider       raider_up       gunship      diver      ace
-etype_ptr   !byte PTR_FIGHTER, PTR_LEADER, PTR_RAIDER,  PTR_RAIDER_UP,  PTR_GUNSHIP, PTR_DIVER, PTR_ACE
-etype_col   !byte COL_GREEN,   COL_RED,    COL_ORANGE,  COL_ORANGE,     COL_WHITE,   COL_CYAN,  COL_YELLOW
+;                fighter      leader      raider       raider_up       gunship      diver      ace      p38
+etype_ptr   !byte PTR_FIGHTER, PTR_LEADER, PTR_RAIDER,  PTR_RAIDER_UP,  PTR_GUNSHIP, PTR_DIVER, PTR_ACE, PTR_SHIP
+etype_col   !byte COL_GREEN,   COL_RED,    COL_ORANGE,  COL_ORANGE,     COL_WHITE,   COL_CYAN,  COL_YELLOW, COL_PLAYER
 
 ; Points for shooting one down, as BCD digits "MMLL" of the 6-digit score:
 ; fighter 100, leader 300, raider 150, gunship 400, diver 200, ace 250
-etype_pts_mid !byte $01,       $03,        $01,         $01,            $04,         $02,       $02
-etype_pts_lo  !byte $00,       $00,        $50,         $50,            $00,         $00,       $50
+etype_pts_mid !byte $01,       $03,        $01,         $01,            $04,         $02,       $02, $00
+etype_pts_lo  !byte $00,       $00,        $50,         $50,            $00,         $00,       $50, $00
 
 ; 1 = shooting one down drops a gold medal (src/enemies.asm). Only the red
 ; leaders do. Crashing into one doesn't drop anything.
-etype_drop    !byte 0,         1,          0,           0,              0,           0,         0
+etype_drop    !byte 0,         1,          0,           0,              0,           0,         0, 0
 
 ; The medal: points for collecting it (BCD "MMLL": 500 = $05,$00) and how
 ; fast it drifts down: 1 pixel per frame, the background's scroll speed,
@@ -180,7 +181,7 @@ path_diag_l
 ; Attack from behind: climbs up from the bottom border (use E_RAIDER_UP,
 ; drawn nose up), fires once at about Y 145, and leaves over the top.
 path_rise
-        +path_start 250
+        +path_start 244              ; (just below the window: PLAY_Y_END removes 247+)
         +seg 0, -1.75, 60
         +seg_fire
         +seg 0, -1.75, 1
@@ -188,7 +189,7 @@ path_rise
 
 ; The same, drifting to the RIGHT as it climbs. Spawn x 20-100.
 path_rise_r
-        +path_start 250
+        +path_start 244              ; (just below the window: PLAY_Y_END removes 247+)
         +seg 0.375, -1.75, 60
         +seg_fire
         +seg 0.375, -1.75, 1
@@ -196,7 +197,7 @@ path_rise_r
 
 ; The same, drifting to the LEFT as it climbs. Spawn x 70-150.
 path_rise_l
-        +path_start 250
+        +path_start 244              ; (just below the window: PLAY_Y_END removes 247+)
         +seg -0.375, -1.75, 60
         +seg_fire
         +seg -0.375, -1.75, 1

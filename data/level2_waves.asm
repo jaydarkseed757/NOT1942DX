@@ -72,10 +72,6 @@ level2_waves
         +wave 118, 1
         +spawn E_RAIDER_UP, 114, P_RISE
 
-; turbo build: a pair (raider_up, rise)
-        +wave_turbo 124, 2
-        +spawn_turbo E_RAIDER_UP, 46, P_RISE
-        +spawn_turbo E_RAIDER_UP, 126, P_RISE
 
 ; leaders swoop out both ways, each with a wingman
         +wave 132, 2
@@ -135,28 +131,24 @@ level2_waves
         +wave 212, 2
         +spawn E_RAIDER_UP, 30, P_RISE_R
         +spawn E_RAIDER_UP, 140, P_RISE_L
-        +wave 215, 2
+        +wave 221, 2
         +spawn E_RAIDER_UP, 46, P_RISE_R
         +spawn E_RAIDER_UP, 124, P_RISE_L
 
 ; turbo build: a pair (raider, dive)
-        +wave_turbo 220, 2
+        +wave_turbo 222, 2
         +spawn_turbo E_RAIDER, 56, P_DIVE
         +spawn_turbo E_RAIDER, 116, P_DIVE
 
 ; gunship zigzag with a raider escort
-        +wave 230, 3
+        +wave 232, 3
         +spawn E_GUNSHIP, 86, P_ZIGZAG
         +spawn E_RAIDER, 30, P_DIVE
         +spawn E_RAIDER, 142, P_DIVE
-        +wave 233, 2
+        +wave 241, 2
         +spawn E_RAIDER, 58, P_DIVE
         +spawn E_RAIDER, 114, P_DIVE
 
-; turbo build: a pair (raider_up, rise_r)
-        +wave_turbo 241, 2
-        +spawn_turbo E_RAIDER_UP, 30, P_RISE_R
-        +spawn_turbo E_RAIDER_UP, 50, P_RISE_R
 
 ; raider sweep stream of five, each further in
         +wave 256, 1
@@ -218,10 +210,6 @@ level2_waves
         +spawn E_RAIDER, 120, P_LOOP_L
         +spawn E_RAIDER, 50, P_LOOP_R
 
-; turbo build: a pair (raider, diag_l)
-        +wave_turbo 349, 2
-        +spawn_turbo E_RAIDER, 150, P_DIAG_L
-        +spawn_turbo E_RAIDER, 130, P_DIAG_L
 
 ; raider crossfire: strings from both sides
         +wave 370, 1
@@ -244,10 +232,6 @@ level2_waves
         +spawn E_GUNSHIP, 56, P_DIVE_FAST
         +spawn E_GUNSHIP, 116, P_DIVE_FAST
 
-; turbo build: a pair (raider_up, rise)
-        +wave_turbo 397, 2
-        +spawn_turbo E_RAIDER_UP, 46, P_RISE
-        +spawn_turbo E_RAIDER_UP, 126, P_RISE
 
 ; climbers both ways around a hovering gunship
         +wave 402, 3
@@ -275,15 +259,7 @@ level2_waves
         +wave 436, 1
         +spawn E_RAIDER, 142, P_ZIGZAG
 
-; turbo build: a pair (raider_up, rise_r)
-        +wave_turbo 442, 2
-        +spawn_turbo E_RAIDER_UP, 30, P_RISE_R
-        +spawn_turbo E_RAIDER_UP, 50, P_RISE_R
 
-; turbo build: a pair (raider, diag_l)
-        +wave_turbo 454, 2
-        +spawn_turbo E_RAIDER, 150, P_DIAG_L
-        +spawn_turbo E_RAIDER, 130, P_DIAG_L
 
 ; gunship crossfire; raiders follow from the left
         +wave 462, 2
@@ -309,10 +285,6 @@ level2_waves
         +spawn_turbo E_RAIDER_UP, 46, P_RISE
         +spawn_turbo E_RAIDER_UP, 126, P_RISE
 
-; turbo build: a pair (raider, dive)
-        +wave_turbo 502, 2
-        +spawn_turbo E_RAIDER, 56, P_DIVE
-        +spawn_turbo E_RAIDER, 116, P_DIVE
 
 ; rear attack: five climb from behind, staggered
         +wave 510, 1
@@ -326,10 +298,6 @@ level2_waves
         +wave 518, 1
         +spawn E_RAIDER_UP, 114, P_RISE
 
-; turbo build: a pair (raider_up, rise_r)
-        +wave_turbo 523, 2
-        +spawn_turbo E_RAIDER_UP, 30, P_RISE_R
-        +spawn_turbo E_RAIDER_UP, 50, P_RISE_R
 
 ; last stand: leaders swoop out, then a V of gunships dives
         +wave 530, 2

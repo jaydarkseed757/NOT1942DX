@@ -78,10 +78,6 @@ level4_waves
         +spawn E_ACE, 150, P_SWOOP_L
         +spawn E_ACE, 10, P_SWOOP_R
 
-; turbo build: a pair (ace, diag_l)
-        +wave_turbo 139, 2
-        +spawn_turbo E_ACE, 150, P_DIAG_L
-        +spawn_turbo E_ACE, 130, P_DIAG_L
 
 ; rear attack: five climb from behind, staggered
         +wave 150, 1
@@ -269,7 +265,7 @@ level4_waves
         +spawn E_RAIDER_UP, 30, P_RISE
         +spawn E_RAIDER_UP, 142, P_RISE
         +spawn E_GUNSHIP, 86, P_HOVER
-        +wave 461, 2
+        +wave 463, 2
         +spawn E_RAIDER_UP, 58, P_RISE
         +spawn E_RAIDER_UP, 114, P_RISE
 
