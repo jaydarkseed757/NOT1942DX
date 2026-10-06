@@ -1,6 +1,6 @@
 # NOT 1942 DX: resource budgets
 
-Measured on 2026-10-05 after DX milestone M7 (smooth scroll, sprite multiplexer, sprite HUD, streamed level maps, effects; levels 1 and 2 remastered with new art, sprites, bosses and 89-90-enemy waves; levels 3-4 still NOT 1942's pictures stretched 2:3). Target: a stock PAL C64 at 1 MHz.
+Measured on 2026-10-05 after DX milestone M8 (smooth scroll, sprite multiplexer, sprite HUD, streamed level maps, effects; levels 1-3 remastered with new art, sprites, bosses and 83-90-enemy waves; level 4 still NOT 1942's picture stretched 2:3). Target: a stock PAL C64 at 1 MHz.
 
 ## CPU
 
@@ -11,13 +11,13 @@ The table shows the worst frame in each part of the game, counted from the start
 | Part | Worst frame (cycles) | Share of the frame | Boss straight away (`--boss`) | After M6 | After M5 | NOT 1942 1.1 |
 |---|---:|---:|---:|---:|---:|---:|
 | Title screen | (not re-measured) | | | | | 2,276 |
-| Level 1 | 17,517 | 89% | 18,671 | 17,895 | 17,668 | 6,507 |
-| Level 2 | 17,651 | 90% | 17,402 | 15,967 | 16,063 | 6,588 |
-| Level 3 | 15,737 | 80% | 15,684 | 14,874 | 14,724 | 5,995 |
-| Level 4 | 17,850 | 91% | 17,969 | 17,845 | 16,698 | 7,080 |
-| Victory screen | 1,870 | 10% | | 1,977 | 1,986 | 1,382 |
-| Credits roll | 5,991 | 30% | | 6,143 | 6,145 | 5,314 |
-| Finale scroller | 11,715 | 60% | | 11,840 | 11,847 | 10,956 |
+| Level 1 | 17,518 | 89% | 18,679 | 17,895 | 17,668 | 6,507 |
+| Level 2 | 17,640 | 90% | 17,389 | 15,967 | 16,063 | 6,588 |
+| Level 3 | 17,873 | 91% | 17,329 | 14,874 | 14,724 | 5,995 |
+| Level 4 | 17,331 | 88% | 18,784 | 17,845 | 16,698 | 7,080 |
+| Victory screen | 1,869 | 10% | | 1,977 | 1,986 | 1,382 |
+| Credits roll | 6,229 | 32% | | 6,143 | 6,145 | 5,314 |
+| Finale scroller | 11,721 | 60% | | 11,840 | 11,847 | 10,956 |
 
 Since M6 the profile counts the player's collision checks (`INVINCIBLE` now only skips the dying), which is most of level 4's rise; the M5 figures left them out.
 
@@ -37,27 +37,27 @@ Since M6 the profile counts the player's collision checks (`INVINCIBLE` now only
 | Region | Size | Used | Free |
 |---|---:|---:|---:|
 | Zero page `$02-$FF` | 254 B | see `src/zp.asm` | **~42 B** (`$38-$40`, `$71-$84`, `$89`, `$CE`, `$FD-$FF`) |
-| Code `$0810-$3FFF` | 14.3 KB | 12.3 KB (`code_end` = `$37DC`) | **2.0 KB** (M6 moved the aim tables and the ending's data out to `$8000-$CFFF`) |
-| Sprite shapes `$5000-$5FFF` | 64 shapes | 37 (29 + 8 for the HUD; `sprites_end` = `$5940`) | **27 shapes** |
+| Code `$0810-$3FFF` | 14.3 KB | 12.4 KB (`code_end` = `$383C`) | **1.9 KB** |
+| Sprite shapes `$5000-$5FFF` | 64 shapes | 38 (30 + 8 for the HUD; `sprites_end` = `$5980`) | **26 shapes** |
 | DATA3 `$6000-$6FFF` (VIC bank RAM the VIC never shows): music, effects, title, the ending's text, aim tables | 4 KB | to `$6ECB` (`data3_end`) | **0.3 KB** (only data that doesn't grow goes here) |
 | Map ring `$7000-$7FFF` | 4 KB | the level map's last 4 KB, unpacked at run time | (fixed) |
-| DATA2 `$8000-$CFFF`: waves, bosses, level packs | 20 KB | to `$BD9A` (`data2_end`) | **4.7 KB** (levels 3-4 will need about 2.3 KB each beyond today's packs: see below) |
+| DATA2 `$8000-$CFFF`: waves, bosses, level packs | 20 KB | to `$C7FB` (`data2_end`) | **2.0 KB** (level 4 will need about that beyond today's pack: see below) |
 | Character set `$4800-$4FFF` | 256 chars | font 0-63, a level's chars from 64 | **up to 192 chars per level** |
 | Low RAM `$0200-$07FF` | 1.5 KB | `HUD_BUF` (40 B), `CHAR_COL` (256 B), `CRAM_SHADOW` (1000 B) | **240 B** (`$0228-$02FF`, `$07E8-$07FF`) |
 | RAM under I/O and KERNAL, `$D000-$FFF9` | ~12 KB | BSS `$E000-$FBB6` (`bss_end`: tables 1.5 KB + the generated colour chase 5.5 KB), IRQ vectors | **~0.8 KB** BSS (`$FBB7-$FEFF`) + `$D000-$DFFF` under I/O (4 KB) |
-| Disk (compressed program) | 664 blocks | 84 | 580 |
-| Cartridge (Magic Desk, uncompressed game) | 7 banks (57,088 B of game; ACME's 64 KB output limit) | 6 (46,489 B) | **10 KB** |
+| Disk (compressed program) | 664 blocks | 92 | 572 |
+| Cartridge (Magic Desk, uncompressed game) | 7 banks (57,088 B of game; ACME's 64 KB output limit) | 6 (49,146 B) | **7.9 KB** |
 
-Today's level packs (levels 1-2 remastered; 3-4 still from NOT 1942's pictures):
+Today's level packs (levels 1-3 remastered; 4 still from NOT 1942's picture):
 
 | Level | Chars | Chars + colours packed | Map packed | Boss loop packed | Waves |
 |---|---:|---:|---:|---:|---:|
 | 1 | 89 | 613 B | 4,124 B | 66 B | 476 B |
 | 2 | 78 | 545 B | 3,530 B | 61 B | 485 B |
-| 3 | 16 | 135 B | 1,743 B | 69 B | 245 B |
+| 3 | 53 | 413 B | 3,540 B | 62 B | 431 B |
 | 4 | 18 | 148 B | 1,198 B | 64 B | 260 B |
 
-Level 1's new art (islands, surf, wave texture, 16 clouds; 14 animations, 505 B) costs about 5.3 KB with its waves, against 2.1 KB before. Its clouds alone cost ~1 KB (each breaks the ocean texture's long matches for its rows, ~40 B, plus ~50 chars). M7 found the room for levels 2-4: sprites are capped at 64 shapes, and the data that doesn't grow (3.8 KB) moved into the freed `$6000-$6FFF` (DATA3). Level 2 (jungle canopy texture, coast, rivers, airstrip, village, 9 clouds) costs 4.6 KB with its waves; that leaves levels 3 and 4 about 4.4 KB each. Beyond that: `$D000-$DFFF` under I/O (loadable only through exomizer or the cartridge).
+Level 1's new art (islands, surf, wave texture, 16 clouds; 14 animations, 505 B) costs about 5.3 KB with its waves, against 2.1 KB before. Its clouds alone cost ~1 KB (each breaks the ocean texture's long matches for its rows, ~40 B, plus ~50 chars). M7 found the room for levels 2-4: sprites are capped at 64 shapes, and the data that doesn't grow (3.8 KB) moved into the freed `$6000-$6FFF` (DATA3). Level 2 (jungle canopy texture, coast, rivers, airstrip, village, 9 clouds) costs 4.6 KB with its waves; level 3 (cliffs as a periodic rock texture, glints, 5 boats, a lighthouse, gun pits, 9 sunset clouds) 4.4 KB. Level 4 has about 4.1 KB in all. Beyond that: `$D000-$DFFF` under I/O (loadable only through exomizer or the cartridge).
 
 The character set is laid out as follows:
 
@@ -78,11 +78,11 @@ The character set is laid out as follows:
 |---|---|---|
 | Virtual sprite slots | 26 (`NUM_SLOTS`; display lists hold up to 32) | 26, incl. 8 for the HUD. Most on screen at once so far: 18 |
 | Hardware sprites | 8, multiplexed (`src/mux.asm`) | 8 |
-| Enemies alive at once | 8 (`ENEMY_COUNT`) | Levels 1-2 peak at 6 (kept there to leave room for medals, which `check_waves.py` doesn't count); levels 3-4 at 3 |
+| Enemies alive at once | 8 (`ENEMY_COUNT`) | Levels 1-3 peak at 6 (kept there to leave room for medals, which `check_waves.py` doesn't count); level 4 at 3 |
 | Player bullets / enemy bullets | 3 / 6 | |
-| Boss parts | 6 expanded sprites (`BOSS_MAX_PARTS`) | Boss 1: 4 (144x84 px); boss 2: 3 (144x42, full height now); bosses 3-4: 3. 6 parts proved too many for the CPU with shots out, and 4 in one row too many sprites on its lines |
+| Boss parts | 6 expanded sprites (`BOSS_MAX_PARTS`) | Bosses 1 and 3: 4 (144x84 px); boss 2: 3 (144x42, full height now); boss 4: 3. 6 parts proved too many for the CPU with shots out, and 4 in one row too many sprites on its lines |
 | SID voices | 3 | 3. Sound effects borrow voice 3, the drums, while they play |
-| Chars per level | 192 (codes 64-255) | L1 89, L2 78, L3 16, L4 18 |
+| Chars per level | 192 (codes 64-255) | L1 89, L2 78, L3 53, L4 18 |
 | Map back-reference reach | 4 KB (the ring) | `png2level.py` packs within it |
 | Songs | Table-driven | 6 (title, 4 levels, boss) |
 | Instruments | Table-driven | 10 |

@@ -10,11 +10,55 @@
   "rows": [
    {
     "frames": 4,
-    "delay": 7
+    "delay": 10
    },
    {
     "frames": 4,
-    "delay": 9
+    "delay": 11
+   },
+   {
+    "frames": 4,
+    "delay": 12
+   },
+   {
+    "frames": 4,
+    "delay": 8
+   },
+   {
+    "frames": 4,
+    "delay": 8
+   },
+   {
+    "frames": 4,
+    "delay": 8
+   },
+   {
+    "frames": 4,
+    "delay": 8
+   },
+   {
+    "frames": 4,
+    "delay": 8
+   },
+   {
+    "frames": 4,
+    "delay": 8
+   },
+   {
+    "frames": 4,
+    "delay": 8
+   },
+   {
+    "frames": 4,
+    "delay": 8
+   },
+   {
+    "frames": 4,
+    "delay": 8
+   },
+   {
+    "frames": 4,
+    "delay": 8
    }
   ]
  }

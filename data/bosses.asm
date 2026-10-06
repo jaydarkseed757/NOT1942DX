@@ -27,8 +27,9 @@
 ; Boss 2 guns: turrets (2 wide at cols 9, 17, 25, row 10) -> DX 13 / 29 / 45,
 ;              DY 20; lower engine pods (cols 10-11 and 20-21, row 19)
 ;              -> DX 15 / 35, DY 38
-; Boss 3 guns: bow (cols 16-19, centre 17-18, row 16) -> DX 29, DY 34
-;              propellers (row 11) at cols 6 / 12 / 23 / 29 -> DX 6 / 18 / 40 / 52,
+; Boss 3 guns: like boss 1, part 0 is the lower-left sprite (art row 21):
+;              bow (cols 17-18, row 39) -> DX 29, DY 36
+;              propellers (row 33) at cols 9 / 14 / 21 / 26 -> DX 13 / 23 / 37 / 47,
 ;              DY 24
 ; Boss 4 guns: turrets (row 7) A col 10 / B col 15 / X col 27 -> DX 14 / 24 / 48,
 ;              DY 16; bridge (col 20, row 9) -> DX 34, DY 20
@@ -66,11 +67,12 @@ boss2_parts                             ; the hull is hit; the pods above and
         +boss_part_box PTR_BOSS2_L, 0, 0, 0, 6, 24, 30
         +boss_part_box PTR_BOSS2_M, 24, 0, 0, 6, 24, 30
         +boss_part_box PTR_BOSS2_R, 48, 0, 0, 2, 24, 38
-boss3_parts
-        +boss_parts 3
-        +boss_part PTR_BOSS3_L, 0, 0
-        +boss_part PTR_BOSS3_M, 24, 0
-        +boss_part PTR_BOSS3_R, 48, 0
+boss3_parts                             ; the lower row (wings, engines, hull)
+        +boss_parts 4                   ;   and the tail above its middle;
+        +boss_part_box PTR_BOSS3_BL, 0, 0, 0, 6, 24, 20    ;   boxes fit the art
+        +boss_part_box PTR_BOSS3_BM, 24, 0, 0, 0, 24, 40
+        +boss_part_box PTR_BOSS3_BR, 48, 0, 0, 6, 24, 20
+        +boss_part_box PTR_BOSS3_TM, 24, -42, 6, 2, 12, 40 ; (Y wraps: 42 up)
 boss4_parts
         +boss_parts 3
         +boss_part PTR_BOSS4_L, 0, 0
@@ -167,42 +169,48 @@ boss2_loop2
 ; -----------------------------------------------------------------------------
 ; Boss 3 "Albatross"
 ; -----------------------------------------------------------------------------
-; Phase 1: patrols high, then DIVES at you (down to Y ~120, its hull reaching
-; the middle of the screen), fires a spread from the bow at the bottom of the
-; dive, and climbs back. Between dives: spreads from the outer engines.
+; Phase 1: patrols high, then DIVES at you (40 px: its bow reaches Y ~170),
+; fires a spread from the bow at the bottom of the dive, and climbs back.
+; Between dives: spreads from the outer engines.
+BOSS3_Y0 = 28 + 42                      ; its lower row (part 0): the tail
+!if BOSS3_Y0 < HUD_Y + SPR_HEIGHT + MUX_SETUP { ;   above it is hidden in the
+        ; the lower row needs hardware sprites the HUD holds until then
+        !error "boss 3 starts too high: the multiplexer would drop its lower row"
+}                                       ;   top border at first
 boss3_script
-        +path_start 8
-        +seg 0, 1, 52                   ; descend to Y 60
+        +path_start BOSS3_Y0
+        +seg 0, 1, 92 - BOSS3_Y0        ; descend: tail at Y 50, bow at 130
 boss3_loop
         +seg 0.5, 0, 40                 ; patrol right
-        +boss_fire 29, 34               ; bow gun, aimed
+        +boss_fire 29, 36               ; bow gun, aimed
         +seg -0.5, 0, 40                ; back to the middle
-        +seg 0, 2, 30                   ; DIVE to Y 120
-        +boss_spread 29, 34             ; bow spread at the bottom
+        +seg 0, 2, 20                   ; DIVE 40 px
+        +boss_spread 29, 36             ; bow spread at the bottom
         +seg 0, 0, 12                   ; hang there...
-        +boss_fire 18, 24               ; ...inner engine guns
-        +seg 0, -1.5, 40                ; climb back to Y 60
+        +boss_fire 23, 24               ; ...inner engine guns
+        +seg 0, -1, 40                  ; climb back
         +seg -0.5, 0, 40                ; patrol left
-        +boss_spread 6, 24              ; left outer engine
+        +boss_spread 13, 24             ; left outer engine
         +seg 0.5, 0, 40
-        +boss_spread 52, 24             ; right outer engine
+        +boss_spread 47, 24             ; right outer engine
         +seg_loop boss3_loop
 
 ; Phase 2 (HP at half): constant slanting dives, left and right, firing at
-; the bottom of every one.
+; the bottom of every one. 24 px each: phase 2 may start at the bottom of a
+; dive, and its swing is around that height (the bow stays above Y ~195).
 boss3_script2
-        +seg 0.75, 1.5, 24              ; dive down-right
-        +boss_spread 29, 34
-        +seg 0.75, -1.5, 24             ; climb
-        +seg -0.75, 1.5, 24             ; dive down-left
-        +boss_fire 6, 24
-        +seg -0.75, -1.5, 24
-        +seg -0.75, 1.5, 24
-        +boss_spread 29, 34
-        +seg -0.75, -1.5, 24
-        +seg 0.75, 1.5, 24
-        +boss_fire 52, 24
-        +seg 0.75, -1.5, 24
+        +seg 0.75, 1, 24              ; dive down-right
+        +boss_spread 29, 36
+        +seg 0.75, -1, 24             ; climb
+        +seg -0.75, 1, 24             ; dive down-left
+        +boss_fire 13, 24
+        +seg -0.75, -1, 24
+        +seg -0.75, 1, 24
+        +boss_spread 29, 36
+        +seg -0.75, -1, 24
+        +seg 0.75, 1, 24
+        +boss_fire 47, 24
+        +seg 0.75, -1, 24
         +seg_loop boss3_script2
 
 ; -----------------------------------------------------------------------------
