@@ -155,8 +155,13 @@ scroll_update
         ; f = 0: the IRQ just showed the new buffer
         jsr cram_late           ; its last two colour RAM rows
         jsr next_record         ; this step's row (in row_buf since f = 5,
-        jsr enemies_spawn       ;   slice 0 draws it): launch its wave, if
-        jmp .next               ;   any (spawn = scroll position), step on
+        lda boss_flag           ;   slice 0 draws it): launch its wave, if
+        bne .next               ;   any (spawn = scroll position), step on.
+        jsr enemies_spawn       ;   Not once the boss is due: the title's
+        jmp .next               ;   keys 1-4 bring it at the level's start,
+                                ;   with all its waves still to come, and
+                                ;   they'd sit frozen in the boss's spare
+                                ;   slots (enemies_update stands still)
 
 .slice  ldx scroll_slice
         cpx #SLICES

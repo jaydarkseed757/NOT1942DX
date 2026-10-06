@@ -203,7 +203,7 @@ level_begin
 +
 !ifdef BOSS_TEST {
         lda #1                  ; test hook (acme -DBOSS_TEST): the boss comes
-        sta boss_flag           ;   straight away (stream spawns are dropped)
+        sta boss_flag           ;   straight away (the waves are skipped)
 }
         jsr init_pbullets
         jsr init_enemies
