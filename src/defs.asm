@@ -212,8 +212,12 @@ SLOT_PBULLET0 = 1           ; player bullets: slots 1-3
 PBULLET_COUNT = 3
 SLOT_ENEMY0   = SLOT_PBULLET0 + PBULLET_COUNT   ; enemies / boss parts: 4-11
 ENEMY_COUNT   = 8
-SLOT_EBULLET0 = SLOT_ENEMY0 + ENEMY_COUNT       ; enemy bullets: 12-17
+SLOT_EBULLET0 = SLOT_ENEMY0 + ENEMY_COUNT       ; enemy bullets: 12-17 (turbo: 12-21)
+!ifdef TURBO {
+EBULLET_COUNT = 10              ; the turbo build: room for boss patterns
+} else {
 EBULLET_COUNT = 6
+}
 SLOT_HUD0     = SLOT_EBULLET0 + EBULLET_COUNT   ; the sprite HUD: 18-25
 SLOT_HUD_SCORE = SLOT_HUD0                      ;   score, 2 sprites
 SLOT_HUD_LIVES = SLOT_HUD0 + 2                  ;   lives

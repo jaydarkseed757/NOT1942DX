@@ -32,6 +32,11 @@ level4_waves
         +spawn E_ACE, 50, P_DIVE_FAST
         +spawn E_ACE, 122, P_DIVE_FAST
 
+; turbo build: a pair (ace, dive_fast)
+        +wave_turbo 49, 2
+        +spawn_turbo E_ACE, 46, P_DIVE_FAST
+        +spawn_turbo E_ACE, 126, P_DIVE_FAST
+
 ; a gunship hovers over the fleet; aces dive past it
         +wave 58, 1
         +spawn E_GUNSHIP, 86, P_HOVER
@@ -47,6 +52,11 @@ level4_waves
         +spawn E_DIVER, 58, P_DIVEBOMB
         +spawn E_DIVER, 114, P_DIVEBOMB
 
+; turbo build: a pair (ace, diag_r)
+        +wave_turbo 88, 2
+        +spawn_turbo E_ACE, 20, P_DIAG_R
+        +spawn_turbo E_ACE, 40, P_DIAG_R
+
 ; aces loop, two each way
         +wave 100, 2
         +spawn E_ACE, 100, P_LOOP_L
@@ -55,6 +65,11 @@ level4_waves
         +spawn E_ACE, 100, P_LOOP_L
         +spawn E_ACE, 60, P_LOOP_R
 
+; turbo build: a pair (diver, divebomb)
+        +wave_turbo 109, 2
+        +spawn_turbo E_DIVER, 58, P_DIVEBOMB
+        +spawn_turbo E_DIVER, 114, P_DIVEBOMB
+
 ; leaders swoop (medals!), each with an ace on its wing
         +wave 128, 2
         +spawn E_LEADER, 130, P_SWOOP_L
@@ -62,6 +77,11 @@ level4_waves
         +wave 132, 2
         +spawn E_ACE, 150, P_SWOOP_L
         +spawn E_ACE, 10, P_SWOOP_R
+
+; turbo build: a pair (ace, diag_l)
+        +wave_turbo 139, 2
+        +spawn_turbo E_ACE, 150, P_DIAG_L
+        +spawn_turbo E_ACE, 130, P_DIAG_L
 
 ; rear attack: five climb from behind, staggered
         +wave 150, 1
@@ -74,6 +94,11 @@ level4_waves
         +spawn E_RAIDER_UP, 58, P_RISE
         +wave 158, 1
         +spawn E_RAIDER_UP, 114, P_RISE
+
+; turbo build: a pair (ace, dive_fast)
+        +wave_turbo 163, 2
+        +spawn_turbo E_ACE, 46, P_DIVE_FAST
+        +spawn_turbo E_ACE, 126, P_DIVE_FAST
 
 ; ace crossfire: strings from both sides
         +wave 172, 1
@@ -99,12 +124,22 @@ level4_waves
         +wave 198, 1
         +spawn E_FIGHTER, 90, P_LOOP_L
 
+; turbo build: a pair (ace, diag_r)
+        +wave_turbo 205, 2
+        +spawn_turbo E_ACE, 20, P_DIAG_R
+        +spawn_turbo E_ACE, 40, P_DIAG_R
+
 ; weaving gunships, an ace diving between
         +wave 228, 2
         +spawn E_GUNSHIP, 40, P_WEAVE
         +spawn E_GUNSHIP, 120, P_WEAVE
         +wave 232, 1
         +spawn E_ACE, 86, P_DIVE_FAST
+
+; turbo build: a pair (diver, divebomb)
+        +wave_turbo 238, 2
+        +spawn_turbo E_DIVER, 58, P_DIVEBOMB
+        +spawn_turbo E_DIVER, 114, P_DIVEBOMB
 
 ; fast ace echelon
         +wave 250, 1
@@ -116,6 +151,11 @@ level4_waves
         +wave 256, 1
         +spawn E_ACE, 138, P_DIVE_FAST
 
+; turbo build: a pair (ace, diag_l)
+        +wave_turbo 262, 2
+        +spawn_turbo E_ACE, 150, P_DIAG_L
+        +spawn_turbo E_ACE, 130, P_DIAG_L
+
 ; divers and a hovering leader
         +wave 268, 3
         +spawn E_DIVER, 40, P_DIVEBOMB
@@ -125,6 +165,11 @@ level4_waves
         +spawn E_DIVER, 66, P_DIVEBOMB
         +spawn E_DIVER, 106, P_DIVEBOMB
 
+; turbo build: a pair (ace, dive_fast)
+        +wave_turbo 283, 2
+        +spawn_turbo E_ACE, 46, P_DIVE_FAST
+        +spawn_turbo E_ACE, 126, P_DIVE_FAST
+
 ; raiders sweep the corners, two each
         +wave 290, 2
         +spawn E_RAIDER, 20, P_DIAG_R
@@ -132,6 +177,11 @@ level4_waves
         +wave 292, 2
         +spawn E_RAIDER, 20, P_DIAG_R
         +spawn E_RAIDER, 150, P_DIAG_L
+
+; turbo build: a pair (ace, diag_r)
+        +wave_turbo 298, 2
+        +spawn_turbo E_ACE, 20, P_DIAG_R
+        +spawn_turbo E_ACE, 40, P_DIAG_R
 
 ; ace zigzag squad of five
         +wave 310, 1
@@ -145,6 +195,7 @@ level4_waves
         +wave 318, 1
         +spawn E_ACE, 142, P_ZIGZAG
 
+
 ; climbers from behind, two each way
         +wave 338, 2
         +spawn E_RAIDER_UP, 30, P_RISE_R
@@ -153,10 +204,20 @@ level4_waves
         +spawn E_RAIDER_UP, 46, P_RISE_R
         +spawn E_RAIDER_UP, 124, P_RISE_L
 
+; turbo build: a pair (ace, diag_l)
+        +wave_turbo 346, 2
+        +spawn_turbo E_ACE, 150, P_DIAG_L
+        +spawn_turbo E_ACE, 130, P_DIAG_L
+
 ; gunship crossfire
         +wave 360, 2
         +spawn E_GUNSHIP, 0, P_CROSS_R
         +spawn E_GUNSHIP, 171, P_CROSS_L
+
+; turbo build: a pair (ace, dive_fast)
+        +wave_turbo 367, 2
+        +spawn_turbo E_ACE, 46, P_DIVE_FAST
+        +spawn_turbo E_ACE, 126, P_DIVE_FAST
 
 ; carrier launch: a string of fighters loops each way
         +wave 376, 1
@@ -167,6 +228,11 @@ level4_waves
         +spawn E_FIGHTER, 70, P_LOOP_R
         +wave 382, 1
         +spawn E_FIGHTER, 70, P_LOOP_R
+
+; turbo build: a pair (ace, diag_r)
+        +wave_turbo 388, 2
+        +spawn_turbo E_ACE, 20, P_DIAG_R
+        +spawn_turbo E_ACE, 40, P_DIAG_R
 
 ; dive-bomb stream of five
         +wave 406, 1
@@ -180,6 +246,11 @@ level4_waves
         +wave 414, 1
         +spawn E_DIVER, 150, P_DIVEBOMB
 
+; turbo build: a pair (diver, divebomb)
+        +wave_turbo 421, 2
+        +spawn_turbo E_DIVER, 58, P_DIVEBOMB
+        +spawn_turbo E_DIVER, 114, P_DIVEBOMB
+
 ; leaders loop (medals!) with ace wingmen
         +wave 428, 2
         +spawn E_LEADER, 120, P_LOOP_L
@@ -187,6 +258,11 @@ level4_waves
         +wave 432, 2
         +spawn E_ACE, 120, P_LOOP_L
         +spawn E_ACE, 50, P_LOOP_R
+
+; turbo build: a pair (ace, diag_l)
+        +wave_turbo 439, 2
+        +spawn_turbo E_ACE, 150, P_DIAG_L
+        +spawn_turbo E_ACE, 130, P_DIAG_L
 
 ; rear attack around a hovering gunship
         +wave 458, 3
@@ -197,11 +273,26 @@ level4_waves
         +spawn E_RAIDER_UP, 58, P_RISE
         +spawn E_RAIDER_UP, 114, P_RISE
 
+; turbo build: a pair (ace, dive_fast)
+        +wave_turbo 466, 2
+        +spawn_turbo E_ACE, 46, P_DIVE_FAST
+        +spawn_turbo E_ACE, 126, P_DIVE_FAST
+
 ; weaving aces
         +wave 480, 3
         +spawn E_ACE, 40, P_WEAVE
         +spawn E_ACE, 86, P_WEAVE
         +spawn E_ACE, 132, P_WEAVE
+
+; turbo build: a pair (ace, diag_r)
+        +wave_turbo 487, 2
+        +spawn_turbo E_ACE, 20, P_DIAG_R
+        +spawn_turbo E_ACE, 40, P_DIAG_R
+
+; turbo build: a pair (diver, divebomb)
+        +wave_turbo 499, 2
+        +spawn_turbo E_DIVER, 58, P_DIVEBOMB
+        +spawn_turbo E_DIVER, 114, P_DIVEBOMB
 
 ; ace crossfire
         +wave 508, 1
@@ -212,6 +303,11 @@ level4_waves
         +spawn E_ACE, 171, P_CROSS_L
         +wave 512, 1
         +spawn E_ACE, 171, P_CROSS_L
+
+; turbo build: a pair (ace, diag_l)
+        +wave_turbo 517, 2
+        +spawn_turbo E_ACE, 150, P_DIAG_L
+        +spawn_turbo E_ACE, 130, P_DIAG_L
 
 ; dive-bombers: a V
         +wave 526, 1
@@ -224,11 +320,21 @@ level4_waves
         +wave 532, 2
         +spawn E_LEADER, 130, P_SWOOP_L
         +spawn E_LEADER, 30, P_SWOOP_R
+
+; turbo build: a pair (ace, dive_fast)
+        +wave_turbo 538, 2
+        +spawn_turbo E_ACE, 46, P_DIVE_FAST
+        +spawn_turbo E_ACE, 126, P_DIVE_FAST
         +wave 548, 1
         +spawn E_GUNSHIP, 86, P_DIVE_FAST
         +wave 550, 2
         +spawn E_GUNSHIP, 58, P_DIVE_FAST
         +spawn E_GUNSHIP, 114, P_DIVE_FAST
+
+; turbo build: a pair (ace, diag_r)
+        +wave_turbo 556, 2
+        +spawn_turbo E_ACE, 20, P_DIAG_R
+        +spawn_turbo E_ACE, 40, P_DIAG_R
 
 ; last stand: a V of fast aces
         +wave 562, 1

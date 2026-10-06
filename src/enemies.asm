@@ -166,6 +166,7 @@ enemies_spawn
 ;   SEG_LOOP : continue reading at the loop target
 ;   SEG_FIRE : fire an aimed shot (enemy_fire), continue with the next byte
 ;   SEG_FIREAT / SEG_SPREAD dx, dy : aimed shot / spread from a gun offset
+;   SEG_PATTERN type, dx, dy (turbo build): start a boss pattern (boss.asm)
 ; At most 4 control bytes (loop/fire) are followed per call; after that the
 ; enemy just holds its velocity. That stops a bad loop (e.g. a loop whose
 ; target is itself, or fire+loop with no +seg) from hanging the game.
@@ -198,6 +199,14 @@ load_seg
         lda #1                  ; skip the 1-byte marker
         bne .skip
 .notfire1
+!ifdef TURBO {
+        cmp #SEG_PATTERN        ; a boss pattern: boss.asm fires it over the
+        bne +                   ;   next frames
+        jsr boss_pattern        ; (reads type, dx, dy at zp_ptr0 + 1..3)
+        lda #4
+        bne .skip
++
+}
         cmp #SEG_FIREAT
         beq .gun
         cmp #SEG_SPREAD

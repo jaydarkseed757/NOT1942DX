@@ -32,10 +32,20 @@ level1_waves
         +wave 42, 1
         +spawn E_FIGHTER, 86, P_DIVE
 
+; turbo build: a pair (fighter, dive)
+        +wave_turbo 49, 2
+        +spawn_turbo E_FIGHTER, 50, P_DIVE
+        +spawn_turbo E_FIGHTER, 122, P_DIVE
+
 ; a pair dives
         +wave 57, 2
         +spawn E_FIGHTER, 50, P_DIVE
         +spawn E_FIGHTER, 122, P_DIVE
+
+; turbo build: a pair (fighter, diag_r)
+        +wave_turbo 64, 2
+        +spawn_turbo E_FIGHTER, 20, P_DIAG_R
+        +spawn_turbo E_FIGHTER, 40, P_DIAG_R
 
 ; V of three: the point first
         +wave 72, 1
@@ -74,6 +84,11 @@ level1_waves
         +spawn E_FIGHTER, 20, P_SWOOP_R
         +spawn E_FIGHTER, 60, P_SWOOP_R
 
+; turbo build: a pair (fighter, dive_fast)
+        +wave_turbo 145, 2
+        +spawn_turbo E_FIGHTER, 66, P_DIVE_FAST
+        +spawn_turbo E_FIGHTER, 106, P_DIVE_FAST
+
 ; fast echelon of four, from the left
         +wave 160, 1
         +spawn E_FIGHTER, 34, P_DIVE_FAST
@@ -108,12 +123,22 @@ level1_waves
         +wave 212, 1
         +spawn E_FIGHTER, 34, P_DIVE
 
+; turbo build: a pair (fighter, diag_l)
+        +wave_turbo 217, 2
+        +spawn_turbo E_FIGHTER, 150, P_DIAG_L
+        +spawn_turbo E_FIGHTER, 130, P_DIAG_L
+
 ; leader hovers and fires; two fighters dive past it
         +wave 226, 1
         +spawn E_LEADER, 86, P_HOVER
         +wave 229, 2
         +spawn E_FIGHTER, 40, P_DIVE
         +spawn E_FIGHTER, 132, P_DIVE
+
+; turbo build: a pair (fighter, dive)
+        +wave_turbo 235, 2
+        +spawn_turbo E_FIGHTER, 50, P_DIVE
+        +spawn_turbo E_FIGHTER, 122, P_DIVE
 
 ; crossed strings: sweeps from both upper corners, two each
         +wave 250, 1
@@ -125,6 +150,11 @@ level1_waves
         +wave 254, 1
         +spawn E_FIGHTER, 140, P_DIAG_L
 
+; turbo build: a pair (fighter, diag_r)
+        +wave_turbo 259, 2
+        +spawn_turbo E_FIGHTER, 20, P_DIAG_R
+        +spawn_turbo E_FIGHTER, 40, P_DIAG_R
+
 ; zigzag squad
         +wave 272, 1
         +spawn E_FIGHTER, 40, P_ZIGZAG
@@ -132,6 +162,7 @@ level1_waves
         +spawn E_FIGHTER, 86, P_ZIGZAG
         +wave 276, 1
         +spawn E_FIGHTER, 132, P_ZIGZAG
+
 
 ; crossfire: a leader from the right, a string from the left
         +wave 300, 1
@@ -170,11 +201,26 @@ level1_waves
         +spawn E_FIGHTER, 58, P_DIVE_FAST
         +spawn E_FIGHTER, 114, P_DIVE_FAST
 
+; turbo build: a pair (fighter, diag_l)
+        +wave_turbo 373, 2
+        +spawn_turbo E_FIGHTER, 150, P_DIAG_L
+        +spawn_turbo E_FIGHTER, 130, P_DIAG_L
+
 ; twin hover gunners
         +wave 381, 1
         +spawn E_LEADER, 50, P_HOVER
         +wave 384, 1
         +spawn E_LEADER, 120, P_HOVER
+
+; turbo build: a pair (fighter, dive)
+        +wave_turbo 391, 2
+        +spawn_turbo E_FIGHTER, 50, P_DIVE
+        +spawn_turbo E_FIGHTER, 122, P_DIVE
+
+; turbo build: a pair (fighter, diag_r)
+        +wave_turbo 403, 2
+        +spawn_turbo E_FIGHTER, 20, P_DIAG_R
+        +spawn_turbo E_FIGHTER, 40, P_DIAG_R
 
 ; interlocking loop strings
         +wave 408, 1
@@ -185,6 +231,11 @@ level1_waves
         +spawn E_FIGHTER, 70, P_LOOP_R
         +wave 414, 1
         +spawn E_FIGHTER, 70, P_LOOP_R
+
+; turbo build: a pair (fighter, dive_fast)
+        +wave_turbo 424, 2
+        +spawn_turbo E_FIGHTER, 66, P_DIVE_FAST
+        +spawn_turbo E_FIGHTER, 106, P_DIVE_FAST
 
 ; sweep stream of five, each further in
         +wave 441, 1
@@ -198,6 +249,11 @@ level1_waves
         +wave 449, 1
         +spawn E_FIGHTER, 80, P_DIAG_R
 
+; turbo build: a pair (fighter, diag_l)
+        +wave_turbo 454, 2
+        +spawn_turbo E_FIGHTER, 150, P_DIAG_L
+        +spawn_turbo E_FIGHTER, 130, P_DIAG_L
+
 ; zigzag leader with a dive escort of four
         +wave 471, 3
         +spawn E_LEADER, 86, P_ZIGZAG
@@ -206,6 +262,11 @@ level1_waves
         +wave 474, 2
         +spawn E_FIGHTER, 58, P_DIVE
         +spawn E_FIGHTER, 114, P_DIVE
+
+; turbo build: a pair (fighter, dive)
+        +wave_turbo 481, 2
+        +spawn_turbo E_FIGHTER, 50, P_DIVE
+        +spawn_turbo E_FIGHTER, 122, P_DIVE
 
 ; crossfire, both ways at once
         +wave 495, 2
@@ -222,6 +283,12 @@ level1_waves
         +wave 512, 1
         +spawn E_FIGHTER, 86, P_DIVE
 
+
+; turbo build: a pair (fighter, dive_fast)
+        +wave_turbo 529, 2
+        +spawn_turbo E_FIGHTER, 66, P_DIVE_FAST
+        +spawn_turbo E_FIGHTER, 106, P_DIVE_FAST
+
 ; big V of five, fast, its wings well spread
         +wave 540, 1
         +spawn E_FIGHTER, 86, P_DIVE_FAST
@@ -232,10 +299,20 @@ level1_waves
         +spawn E_FIGHTER, 46, P_DIVE_FAST
         +spawn E_FIGHTER, 126, P_DIVE_FAST
 
+; turbo build: a pair (fighter, diag_l)
+        +wave_turbo 550, 2
+        +spawn_turbo E_FIGHTER, 150, P_DIAG_L
+        +spawn_turbo E_FIGHTER, 130, P_DIAG_L
+
 ; last stand: leaders swoop out, a fast dive between
         +wave 558, 3
         +spawn E_LEADER, 130, P_SWOOP_L
         +spawn E_LEADER, 30, P_SWOOP_R
         +spawn E_FIGHTER, 86, P_DIVE_FAST
+
+; turbo build: a pair (fighter, dive)
+        +wave_turbo 565, 2
+        +spawn_turbo E_FIGHTER, 50, P_DIVE
+        +spawn_turbo E_FIGHTER, 122, P_DIVE
 
         +waves_end

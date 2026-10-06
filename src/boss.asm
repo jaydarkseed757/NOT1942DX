@@ -113,6 +113,10 @@ boss_start
         bne -
         jsr boss_colour
         jsr boss_follow
+!ifdef TURBO {
+        lda #0                  ; no pattern under way
+        sta pat_left
+}
         lda #BS_FIGHT
         sta boss_state
         jsr hud_draw_boss_hp
@@ -162,6 +166,9 @@ boss_update
         lda boss_xmax
 +       sta spr_xh,x
         jsr boss_follow
+!ifdef TURBO {
+        jsr boss_pat_update     ; a sweep or burst under way fires its next shot
+}
         lda boss_flash          ; hit flash
         beq +
         dec boss_flash
@@ -286,6 +293,10 @@ boss_hit
         sta shake_timer
         jsr init_ebullets       ; its shots vanish: no death after the win,
                                 ;   and fewer sprites while it explodes
+!ifdef TURBO {
+        lda #0                  ; and a pattern under way stops
+        sta pat_left
+}
         lda #$00                ; BOSS_SCORE = 5000 (BCD "50" in the middle)
         ldy #$50
         jsr score_add_bcd
@@ -298,3 +309,89 @@ boss_hit
         pla
         tax
         rts
+
+!ifdef TURBO {
+!zone boss_pattern
+; -----------------------------------------------------------------------------
+; Boss patterns (turbo build): +boss_sweep / +boss_burst in a boss script
+; start one; boss_pat_update then fires its shots a few frames apart, so they
+; trail down the screen instead of crowding one line (the VIC shows 8
+; sprites a line, whatever the CPU speed). A new pattern replaces one under
+; way. The stock build fires +boss_spread / +boss_fire there instead.
+;   PAT_SWEEP  7 shots, 6 frames apart, fanned from 67.5 degrees left of
+;              straight down, through straight down, to 67.5 right
+;   PAT_BURST  4 aimed shots, 6 frames apart (each one aimed afresh)
+; A shot is skipped, as always, when no enemy-bullet slot is free.
+; TIMING: ~200 cycles on a frame that fires, ~20 otherwise.
+; -----------------------------------------------------------------------------
+pat_kind  !byte 0
+pat_left  !byte 0               ; shots still to fire (0 = none under way)
+pat_timer !byte 0               ; frames to the next one
+pat_step  !byte 0
+pat_dx    !byte 0               ; the gun, from part 0's top-left
+pat_dy    !byte 0
+
+; boss_pattern: start the pattern at zp_ptr0 (SEG_PATTERN, type, dx, dy),
+; from load_seg. Preserves X, zp_ptr0, zp_tmp2. Clobbers A, Y.
+boss_pattern
+        ldy #1
+        lda (zp_ptr0),y
+        sta pat_kind
+        iny
+        lda (zp_ptr0),y
+        sta pat_dx
+        iny
+        lda (zp_ptr0),y
+        sta pat_dy
+        ldy pat_kind
+        lda .count,y
+        sta pat_left
+        lda #0
+        sta pat_step
+        lda #1                  ; the first shot on the next update
+        sta pat_timer
+        rts
+
+; boss_pat_update: once per fight frame. Clobbers A, X, Y, aim_*.
+boss_pat_update
+        lda pat_left
+        beq .out
+        dec pat_timer
+        bne .out
+        ldy pat_kind
+        lda .period,y
+        sta pat_timer
+        dec pat_left
+        ldx #boss_slot
+        lda pat_dx
+        sta aim_offx
+        lda pat_dy
+        sta aim_offy
+        lda pat_kind
+        beq .sweep
+        jmp enemy_fire_at       ; PAT_BURST: an aimed shot
+.sweep  ldy pat_step            ; PAT_SWEEP: the next angle of the fan
+        inc pat_step
+        lda .sx,y
+        sta aim_sx
+        lda .k,y
+        pha
+        jsr gun_position
+        bcc .skip               ; the gun is off screen
+        jsr eb_free_slot
+        bcc .skip               ; no free bullet slot
+        jsr eb_place
+        lda #$80                ; downward
+        sta aim_sy
+        pla
+        tax
+        jmp eb_launch           ; (Y = the bullet slot)
+.skip   pla
+.out    rts
+
+.count  !byte 7, 4              ; shots, by pattern
+.period !byte 6, 6              ; frames between them
+.k      !byte 6, 4, 2, 0, 2, 4, 6       ; the sweep's angles (11.25-degree
+.sx     !byte 0, 0, 0, $80, $80, $80, $80   ;   steps from straight down), sides
+}
+

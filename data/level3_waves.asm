@@ -30,10 +30,20 @@ level3_waves
         +wave 42, 1
         +spawn E_DIVER, 86, P_DIVEBOMB
 
+; turbo build: a pair (diver, divebomb)
+        +wave_turbo 49, 2
+        +spawn_turbo E_DIVER, 46, P_DIVEBOMB
+        +spawn_turbo E_DIVER, 126, P_DIVEBOMB
+
 ; fighters weave in
         +wave 57, 2
         +spawn E_FIGHTER, 40, P_WEAVE
         +spawn E_FIGHTER, 120, P_WEAVE
+
+; turbo build: a pair (fighter, dive)
+        +wave_turbo 64, 2
+        +spawn_turbo E_FIGHTER, 66, P_DIVE
+        +spawn_turbo E_FIGHTER, 106, P_DIVE
 
 ; divers in echelon, from the left
         +wave 78, 1
@@ -43,6 +53,7 @@ level3_waves
         +wave 82, 1
         +spawn E_DIVER, 104, P_DIVEBOMB
 
+
 ; raiders sweep from the corners, two each
         +wave 100, 2
         +spawn E_RAIDER, 20, P_DIAG_R
@@ -50,6 +61,11 @@ level3_waves
         +wave 102, 2
         +spawn E_RAIDER, 20, P_DIAG_R
         +spawn E_RAIDER, 150, P_DIAG_L
+
+; turbo build: a pair (raider_up, rise)
+        +wave_turbo 109, 2
+        +spawn_turbo E_RAIDER_UP, 58, P_RISE
+        +spawn_turbo E_RAIDER_UP, 114, P_RISE
 
 ; leaders swoop out (medals!), each with a wingman
         +wave 122, 2
@@ -59,6 +75,11 @@ level3_waves
         +spawn E_FIGHTER, 150, P_SWOOP_L
         +spawn E_FIGHTER, 10, P_SWOOP_R
 
+; turbo build: a pair (diver, divebomb)
+        +wave_turbo 133, 2
+        +spawn_turbo E_DIVER, 46, P_DIVEBOMB
+        +spawn_turbo E_DIVER, 126, P_DIVEBOMB
+
 ; a V of dive-bombers
         +wave 146, 1
         +spawn E_DIVER, 86, P_DIVEBOMB
@@ -66,12 +87,22 @@ level3_waves
         +spawn E_DIVER, 56, P_DIVEBOMB
         +spawn E_DIVER, 116, P_DIVEBOMB
 
+; turbo build: a pair (fighter, dive)
+        +wave_turbo 154, 2
+        +spawn_turbo E_FIGHTER, 66, P_DIVE
+        +spawn_turbo E_FIGHTER, 106, P_DIVE
+
 ; a gunship hovers; divers come down either side
         +wave 166, 1
         +spawn E_GUNSHIP, 86, P_HOVER
         +wave 170, 2
         +spawn E_DIVER, 30, P_DIVEBOMB
         +spawn E_DIVER, 142, P_DIVEBOMB
+
+; turbo build: a pair (diver, divebomb)
+        +wave_turbo 175, 2
+        +spawn_turbo E_DIVER, 30, P_DIVEBOMB
+        +spawn_turbo E_DIVER, 142, P_DIVEBOMB
 
 ; fighter loops, both ways
         +wave 188, 2
@@ -81,6 +112,11 @@ level3_waves
         +spawn E_FIGHTER, 100, P_LOOP_L
         +spawn E_FIGHTER, 60, P_LOOP_R
 
+; turbo build: a pair (raider_up, rise)
+        +wave_turbo 196, 2
+        +spawn_turbo E_RAIDER_UP, 58, P_RISE
+        +spawn_turbo E_RAIDER_UP, 114, P_RISE
+
 ; weaving divers
         +wave 214, 1
         +spawn E_DIVER, 40, P_WEAVE
@@ -88,6 +124,11 @@ level3_waves
         +spawn E_DIVER, 86, P_WEAVE
         +wave 220, 1
         +spawn E_DIVER, 132, P_WEAVE
+
+; turbo build: a pair (diver, divebomb)
+        +wave_turbo 226, 2
+        +spawn_turbo E_DIVER, 46, P_DIVEBOMB
+        +spawn_turbo E_DIVER, 126, P_DIVEBOMB
 
 ; leader hovers; raiders climb from behind
         +wave 240, 1
@@ -120,6 +161,11 @@ level3_waves
         +spawn E_DIVER, 66, P_DIVEBOMB
         +spawn E_DIVER, 106, P_DIVEBOMB
 
+; turbo build: a pair (fighter, dive)
+        +wave_turbo 295, 2
+        +spawn_turbo E_FIGHTER, 66, P_DIVE
+        +spawn_turbo E_FIGHTER, 106, P_DIVE
+
 ; gunship zigzag, raiders sweeping in behind it
         +wave 310, 1
         +spawn E_GUNSHIP, 86, P_ZIGZAG
@@ -128,6 +174,11 @@ level3_waves
         +wave 316, 1
         +spawn E_RAIDER, 150, P_DIAG_L
 
+; turbo build: a pair (diver, divebomb)
+        +wave_turbo 322, 2
+        +spawn_turbo E_DIVER, 30, P_DIVEBOMB
+        +spawn_turbo E_DIVER, 142, P_DIVEBOMB
+
 ; climbers from behind, two each way
         +wave 332, 2
         +spawn E_RAIDER_UP, 30, P_RISE_R
@@ -135,6 +186,11 @@ level3_waves
         +wave 335, 2
         +spawn E_RAIDER_UP, 46, P_RISE_R
         +spawn E_RAIDER_UP, 124, P_RISE_L
+
+; turbo build: a pair (raider_up, rise)
+        +wave_turbo 340, 2
+        +spawn_turbo E_RAIDER_UP, 58, P_RISE
+        +spawn_turbo E_RAIDER_UP, 114, P_RISE
 
 ; dive-bomb stream of five across the strait
         +wave 354, 1
@@ -148,6 +204,11 @@ level3_waves
         +wave 362, 1
         +spawn E_DIVER, 150, P_DIVEBOMB
 
+; turbo build: a pair (diver, divebomb)
+        +wave_turbo 367, 2
+        +spawn_turbo E_DIVER, 46, P_DIVEBOMB
+        +spawn_turbo E_DIVER, 126, P_DIVEBOMB
+
 ; leader loops (medals!) with wingmen
         +wave 380, 2
         +spawn E_LEADER, 120, P_LOOP_L
@@ -156,6 +217,11 @@ level3_waves
         +spawn E_FIGHTER, 120, P_LOOP_L
         +spawn E_FIGHTER, 50, P_LOOP_R
 
+; turbo build: a pair (fighter, dive)
+        +wave_turbo 391, 2
+        +spawn_turbo E_FIGHTER, 66, P_DIVE
+        +spawn_turbo E_FIGHTER, 106, P_DIVE
+
 ; a V of fast gunships
         +wave 412, 1
         +spawn E_GUNSHIP, 86, P_DIVE_FAST
@@ -163,12 +229,22 @@ level3_waves
         +spawn E_GUNSHIP, 56, P_DIVE_FAST
         +spawn E_GUNSHIP, 116, P_DIVE_FAST
 
+; turbo build: a pair (diver, divebomb)
+        +wave_turbo 421, 2
+        +spawn_turbo E_DIVER, 30, P_DIVEBOMB
+        +spawn_turbo E_DIVER, 142, P_DIVEBOMB
+
 ; weaving divers and a diving leader
         +wave 432, 2
         +spawn E_DIVER, 40, P_WEAVE
         +spawn E_DIVER, 120, P_WEAVE
         +wave 436, 1
         +spawn E_LEADER, 86, P_DIVE
+
+; turbo build: a pair (raider_up, rise)
+        +wave_turbo 442, 2
+        +spawn_turbo E_RAIDER_UP, 58, P_RISE
+        +spawn_turbo E_RAIDER_UP, 114, P_RISE
 
 ; rear attack: five climb from behind, staggered
         +wave 458, 1
@@ -182,6 +258,11 @@ level3_waves
         +wave 466, 1
         +spawn E_RAIDER_UP, 114, P_RISE
 
+; turbo build: a pair (diver, divebomb)
+        +wave_turbo 472, 2
+        +spawn_turbo E_DIVER, 46, P_DIVEBOMB
+        +spawn_turbo E_DIVER, 126, P_DIVEBOMB
+
 ; gunship crossfire; fighters follow from the left
         +wave 482, 2
         +spawn E_GUNSHIP, 0, P_CROSS_R
@@ -190,6 +271,11 @@ level3_waves
         +spawn E_FIGHTER, 0, P_CROSS_R
         +wave 485, 1
         +spawn E_FIGHTER, 0, P_CROSS_R
+
+; turbo build: a pair (fighter, dive)
+        +wave_turbo 490, 2
+        +spawn_turbo E_FIGHTER, 66, P_DIVE
+        +spawn_turbo E_FIGHTER, 106, P_DIVE
 
 ; dive-bombers: a V, then an echelon
         +wave 500, 1
@@ -202,6 +288,11 @@ level3_waves
         +wave 510, 1
         +spawn E_DIVER, 142, P_DIVEBOMB
 
+; turbo build: a pair (diver, divebomb)
+        +wave_turbo 517, 2
+        +spawn_turbo E_DIVER, 30, P_DIVEBOMB
+        +spawn_turbo E_DIVER, 142, P_DIVEBOMB
+
 ; leaders swoop out; a gunship hovers
         +wave 524, 2
         +spawn E_LEADER, 130, P_SWOOP_L
@@ -209,10 +300,21 @@ level3_waves
         +wave 528, 1
         +spawn E_GUNSHIP, 86, P_HOVER
 
+; turbo build: a pair (raider_up, rise)
+        +wave_turbo 535, 2
+        +spawn_turbo E_RAIDER_UP, 58, P_RISE
+        +spawn_turbo E_RAIDER_UP, 114, P_RISE
+
 ; last stand: weaving fighters
         +wave 548, 3
         +spawn E_FIGHTER, 40, P_WEAVE
         +spawn E_FIGHTER, 86, P_WEAVE
         +spawn E_FIGHTER, 132, P_WEAVE
+
+
+; turbo build: a pair (fighter, dive)
+        +wave_turbo 565, 2
+        +spawn_turbo E_FIGHTER, 66, P_DIVE
+        +spawn_turbo E_FIGHTER, 106, P_DIVE
 
         +waves_end

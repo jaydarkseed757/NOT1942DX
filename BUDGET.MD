@@ -34,6 +34,8 @@ Since M6 the profile counts the player's collision checks (`INVINCIBLE` now only
 
 **The turbo build** (`make turbo`, M11) on VICE's SuperCPU (20 MHz, the stand-in for the MiSTer's turbo modes): the busiest play frame takes about 1,130 cycles of real time (6% of a frame), the worst frame of any kind 5,857 (a level's set-up), the frame IRQ 211. On the MiSTer at 2x-4x, I/O (VIC and SID registers, colour RAM) still runs at 1 MHz, so expect much less gain than that: to be measured on the hardware (M13).
 
+With M12's extras (119-140 enemies a level, at most 7 alive; boss sweeps and bursts; 10 enemy-bullet slots) the turbo build on the SuperCPU peaks at about 1,230 cycles of real time in play, with up to 21 sprites and none dropped. The stock build is unchanged.
+
 ## Memory
 
 | Region | Size | Used | Free |

@@ -16,6 +16,10 @@
 ;   script     path: +path_start Y, then segments (data/waves.asm format)
 ;   script2    phase-2 segments (no start Y: it continues from where it is)
 ;
+; TURBO PATTERNS: +boss_sweep / +boss_burst (same arguments as +boss_spread /
+; +boss_fire) are a fan sweep and an aimed burst in the turbo build
+; (boss.asm), and plain +boss_spread / +boss_fire in the stock build.
+;
 ; GUN OFFSETS for +boss_fire / +boss_spread are measured from the boss's
 ; top-left (half-X, pixels). Expanded pixels are 2 half-X wide and 2 pixels
 ; tall, so art column c, row r is at (2c, 2r). A bullet's own art is centred
@@ -111,9 +115,9 @@ boss1_loop
 ; Phase 2 (HP below half): faster, bobbing, and firing twice as often.
 boss1_script2
         +seg 0.75, 0.25, 24
-        +boss_spread 29, 38
+        +boss_sweep  29, 38
         +seg 0.75, -0.25, 24
-        +boss_fire 7, 24                ; outer engines, aimed
+        +boss_burst 7, 24                ; outer engines, aimed
         +seg -0.75, 0.25, 24
         +boss_fire 53, 24
         +seg -0.75, -0.25, 24
@@ -158,9 +162,9 @@ boss2_script2
         +seg 0, 0.5, 24                 ; drops 12 px, closer to the player
 boss2_loop2
         +seg 0.75, 0, 24
-        +boss_spread 15, 38
+        +boss_sweep  15, 38
         +seg 0.75, 0, 24
-        +boss_fire 13, 20               ; left turret
+        +boss_burst 13, 20               ; left turret
         +seg -0.75, 0, 24
         +boss_spread 35, 38
         +seg -0.75, 0, 24
@@ -189,7 +193,7 @@ boss3_loop
         +boss_fire 29, 36               ; bow gun, aimed
         +seg -0.5, 0, 40                ; back to the middle
         +seg 0, 2, 20                   ; DIVE 40 px
-        +boss_spread 29, 36             ; bow spread at the bottom
+        +boss_sweep  29, 36             ; bow spread at the bottom
         +seg 0, 0, 12                   ; hang there...
         +boss_fire 23, 24               ; ...inner engine guns
         +seg 0, -1, 40                  ; climb back
@@ -204,10 +208,10 @@ boss3_loop
 ; dive, and its swing is around that height (the bow stays above Y ~195).
 boss3_script2
         +seg 0.75, 1, 24              ; dive down-right
-        +boss_spread 29, 36
+        +boss_sweep  29, 36
         +seg 0.75, -1, 24             ; climb
         +seg -0.75, 1, 24             ; dive down-left
-        +boss_fire 13, 24
+        +boss_burst 13, 24
         +seg -0.75, -1, 24
         +seg -0.75, 1, 24
         +boss_spread 29, 36
@@ -233,7 +237,9 @@ boss4_loop
         +seg 0.25, 0, 24
         +boss_fire 51, 20               ;   turret X
         +seg -0.25, 0, 48               ; ...and back
-        +boss_spread 41, 12             ;   bridge flak
+        +boss_sweep  41, 12 + 18 * IS_TURBO ; bridge flak (turbo: from beside the
+                                ;   bridge, lower: its trail clears the
+                                ;   boss's sprite lines sooner)
         +seg -0.25, 0, 48
         +seg -0.25, 0, 48               ; creep left...
         +boss_fire 51, 20
@@ -242,7 +248,7 @@ boss4_loop
         +seg -0.25, 0, 24
         +boss_fire 17, 20
         +seg 0.25, 0, 48                ; ...and back
-        +boss_spread 41, 12
+        +boss_sweep  41, 12 + 18 * IS_TURBO
         +seg 0.25, 0, 48
         +seg_loop boss4_loop
 
@@ -252,13 +258,13 @@ boss4_script2
         +seg 0, 0.5, 32                 ; 16 px closer
 boss4_loop2
         +seg 0.5, 0, 24
-        +boss_spread 17, 20
+        +boss_sweep  17, 20
         +seg 0.5, 0, 24
-        +boss_fire 51, 20
+        +boss_burst 51, 20
         +seg -0.5, 0, 24
         +boss_spread 41, 12
         +seg -0.5, 0, 24
-        +boss_fire 31, 20
+        +boss_burst 31, 20
         +seg -0.5, 0, 24
         +boss_spread 51, 20
         +seg -0.5, 0, 24

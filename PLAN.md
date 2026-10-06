@@ -115,7 +115,10 @@ Done as below, in `src/turbo.asm`. The speed is measured with CIA1 timer A (1 MH
 - If the speed is below 2×, show "set Turbo in the MiSTer OSD (C128 or Smart)" and don't start the game.
 - Document that the turbo build is not meant for a real C128, whose VIC screen breaks at 2 MHz.
 
-### M12. Turbo features
+### M12. Turbo features (done, in part)
+
+Done: extra spawns (`+spawn_turbo`, `+wave_t`, `+wave_turbo`; 34-50 more enemies a level, at most 7 alive), bullet-pattern bosses (`+boss_sweep`, `+boss_burst`, fired a few frames apart so they trail down the screen), 10 enemy-bullet slots (30 sprite slots in all). Checked on xscpu64: no drops, no overruns, no spawns lost; the stock build is byte for byte unchanged. Not done: the full-frame parallax layer (it means compositing a second layer into the double-buffered scroll engine) and more particles (sprites, against the VIC's 8 a line, which turbo doesn't change). Most turbo extras run into that limit rather than the CPU.
+
 These assume at least 2× speed and are scaled by compile-time knobs:
 - a larger multiplexer (about 32 virtual sprites)
 - bullet-pattern bosses

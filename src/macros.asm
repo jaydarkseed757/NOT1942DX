@@ -53,6 +53,33 @@ MAX_SPAWNS_PER_ROW = ENEMY_COUNT
         !set WAVE_LEFT = WAVE_LEFT - 1
 }
 
+; Turbo extras (the MiSTer turbo build has more enemies; the stock build
+; assembles the same bytes as before):
+;   +wave_t ROW, N, NT          a wave of N stock spawns plus NT more in the
+;                               turbo build: N +spawn lines and NT
+;                               +spawn_turbo lines, in any order
+;   +wave_turbo ROW, N          a wave only in the turbo build: N
+;                               +spawn_turbo lines
+;   +spawn_turbo TYPE, X, PATH  a spawn only in the turbo build
+!ifdef TURBO {
+IS_TURBO = 1                    ; 1 in the turbo build: for data that differs
+} else {                        ;   (e.g. +wave_t's count, a pattern's gun)
+IS_TURBO = 0
+}
+!macro wave_t .row, .n, .nt {
+        +wave .row, .n + .nt * IS_TURBO
+}
+!macro wave_turbo .row, .n {
+!ifdef TURBO {
+        +wave .row, .n
+}
+}
+!macro spawn_turbo .type, .x, .path {
+!ifdef TURBO {
+        +spawn .type, .x, .path
+}
+}
+
 !macro waves_end {
         !if WAVE_LEFT != 0 { !error "the last +wave is missing +spawn lines" }
         !word WAVE_END
@@ -96,13 +123,25 @@ MAX_SPAWNS_PER_ROW = ENEMY_COUNT
 ;                            from the top-left of the boss (or enemy)
 ;   +boss_spread DX, DY      two shots from that gun, fanned 22.5 degrees
 ;                            left and right of straight down
+;   +boss_sweep DX, DY       turbo build: a fan of shots swept from left to
+;                            right, one every few frames (boss.asm); the
+;                            stock build fires +boss_spread instead
+;   +boss_burst DX, DY       turbo build: a burst of aimed shots, a few
+;                            frames apart; the stock build: one +boss_fire
 ; -----------------------------------------------------------------------------
 SEG_END    = 0
+SEG_PATTERN = $fb               ; (turbo build only)
 SEG_SPREAD = $fc
 SEG_FIREAT = $fd
 SEG_FIRE   = $fe
 SEG_LOOP   = $ff
-SEG_MAX_FRAMES = SEG_SPREAD - 1 ; frame counts share the byte with commands
+!ifdef TURBO {
+SEG_MAX_FRAMES = SEG_PATTERN - 1 ; frame counts share the byte with commands
+} else {
+SEG_MAX_FRAMES = SEG_SPREAD - 1
+}
+PAT_SWEEP  = 0                  ; boss patterns (turbo build)
+PAT_BURST  = 1
 SEG_LEN  = 5                    ; frames, dx lo/hi, dy lo/hi
 
 !macro path_start .y {
@@ -133,6 +172,24 @@ SEG_LEN  = 5                    ; frames, dx lo/hi, dy lo/hi
 !macro boss_spread .dx, .dy {
         !if (.dx < 0) | (.dx > 255) | (.dy < 0) | (.dy > 255) { !error "+boss_spread: gun offset must be 0-255" }
         !byte SEG_SPREAD, .dx, .dy
+}
+
+!macro boss_sweep .dx, .dy {
+!ifdef TURBO {
+        !if (.dx < 0) | (.dx > 255) | (.dy < 0) | (.dy > 255) { !error "+boss_sweep: gun offset must be 0-255" }
+        !byte SEG_PATTERN, PAT_SWEEP, .dx, .dy
+} else {
+        +boss_spread .dx, .dy
+}
+}
+
+!macro boss_burst .dx, .dy {
+!ifdef TURBO {
+        !if (.dx < 0) | (.dx > 255) | (.dy < 0) | (.dy > 255) { !error "+boss_burst: gun offset must be 0-255" }
+        !byte SEG_PATTERN, PAT_BURST, .dx, .dy
+} else {
+        +boss_fire .dx, .dy
+}
 }
 
 !macro seg_loop .target {

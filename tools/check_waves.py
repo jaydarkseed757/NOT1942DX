@@ -8,8 +8,10 @@ spawn ever needs more than SLOTS enemy slots. Each enemy counts as alive for MAR
 extra frames, covering an explosion if it is shot just before it would have
 left the screen.
 
-Usage:  python3 tools/check_waves.py data/level1_waves.asm [more levels...]
-Exit status 1 if any level breaks the budget.
+Usage:  python3 tools/check_waves.py [--turbo] data/level1_waves.asm [more levels...]
+--turbo checks the MiSTer turbo build's waves: with its +spawn_turbo extras
+(+wave_t, +wave_turbo; src/macros.asm). Exit status 1 if any level breaks
+the budget.
 
 The waves file stays the source of truth; this only reads it. A DEBUG build
 (spawn_drops, see CLAUDE.md) remains the final check.
@@ -97,7 +99,7 @@ def lifetime(path_id, x):
             return frame
     return 10000
 
-def check(level_file):
+def check(level_file, turbo=False):
     spawns, boss = [], None          # spawns: (row, path, x, line)
     row = None
     # the boss row is in the level's JSON: data/levelN_waves.asm -> data/levels/levelN.json
@@ -108,12 +110,12 @@ def check(level_file):
             boss = json.load(open(cfg))["boss_row"]
     for n, raw in enumerate(open(level_file), 1):
         code = strip(raw)
-        m = re.match(r"^\s+\+wave\s+(\d+)", code)
+        m = re.match(r"^\s+\+wave(?:_t|_turbo)?\s+(\d+)", code)
         if m:
             row = int(m.group(1))
-        m = re.match(r"^\s+\+spawn\s+(\w+),\s*(\w+),\s*(\w+)", code)
-        if m:
-            spawns.append((row, m.group(3), int(m.group(2), 0), n))
+        m = re.match(r"^\s+\+spawn(_turbo)?\s+(\w+),\s*(\w+),\s*(\w+)", code)
+        if m and (turbo or not m.group(1)):
+            spawns.append((row, m.group(4), int(m.group(3), 0), n))
     if not spawns:
         print(f"{level_file}: no +wave lines (not a waves file), skipped")
         return True
@@ -130,7 +132,7 @@ def check(level_file):
         peak = max(peak, len(alive))
     waves = records - PREDRAWN
     secs = waves * FRAMES_PER_ROW / (985248 / 19656)
-    print(f"{level_file}: {waves} rows of waves ({secs:.0f} s), {len(spawns)} enemies, "
+    print(f"{level_file}{' (turbo)' if turbo else ''}: {waves} rows of waves ({secs:.0f} s), {len(spawns)} enemies, "
           f"peak {peak} alive: {'OK' if ok else 'BUDGET BROKEN'}")
     return ok
 
@@ -138,5 +140,6 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(__doc__)
         sys.exit(2)
-    results = [check(f) for f in sys.argv[1:]]
+    turbo = "--turbo" in sys.argv[1:]
+    results = [check(f, turbo) for f in sys.argv[1:] if f != "--turbo"]
     sys.exit(0 if all(results) else 1)
