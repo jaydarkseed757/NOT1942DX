@@ -55,6 +55,7 @@ DX is built in milestones (details in `PLAN.md`):
   - M11: detection and build (done): `make turbo`, turbo detection at boot (`src/turbo.asm`), a "set turbo in the OSD" screen below 2x, the speed on the title
   - M12: turbo features (done): 34-50 extra enemies a level, boss bullet patterns (sweeps, bursts), 10 enemy-bullet slots; the stock build is byte for byte unchanged
   - M13: testing (done): the user checked everything in `MISTER-TEST.md` on a MiSTer (detection in Off / Smart / C128 mode, play at 2x-4x); the turbo build stops with a message on a real C128 (its `$D02F` reads back)
+  - M14: parallax clouds (done, awaiting the user's test): a cloud layer drawn with chars, drifting at twice the map's speed (`src/parallax.asm`), turbo build only
 
 After each milestone, make sure it assembles with no errors or warnings, then stop and tell the user what to test in VICE, with likely bugs ranked by severity. Don't start the next milestone until the user says so. Commit only when the user asks.
 
@@ -101,8 +102,10 @@ How the turbo build does it (M11, `src/turbo.asm`, only assembled with `-DTURBO=
   - more enemies: `+spawn_turbo` lines and `+wave_turbo` waves in the waves files (see Data authoring), 34-50 a level, at most 7 alive (`check_waves.py --turbo`)
   - boss bullet patterns: `+boss_sweep` (7 shots fanned across, 6 frames apart) and `+boss_burst` (4 aimed shots, 6 frames apart), run by `boss_pat_update` in `src/boss.asm`
   - 10 enemy-bullet slots instead of 6 (`EBULLET_COUNT`), so 30 sprite slots
-  - Not done: the plan's full-screen parallax layer (a second layer composited into the double-buffered scroll engine: a large rework of `src/scroll.asm`) and extra particles (more sprites, against the 8-per-line limit).
-- Every turbo difference is under `!ifdef TURBO` or `IS_TURBO` (1 in the turbo build), and the stock build must stay byte for byte the same: check it against the last release commit after any turbo change.
+  - parallax clouds (M14, `src/parallax.asm`): one cloud at a time drifts down at 2 pixels a frame, twice the map's speed, over everything but the sprites. It is drawn with chars, not sprites: 24 chars at the top of the charset (`PARA_CODE`-255; `data/levels.asm` checks no level reaches them) are rebuilt every frame as the map char under each cell ORed with the cloud's pixels (`data/parallax.asm`, from `tools/art/parallax_cloud.py`; its pixels are only '11', its cells' colour RAM white, yellow in level 3). Each frame, first in the border (right after the frame IRQ, so it's done before the raster reaches the picture): `para_restore` puts back the map chars and colours under last frame's cloud (not after a flip: the new front buffer and colour RAM are clean), `para_update` moves it and draws it into the buffer on screen, saving each covered cell. The scroller's slices then copy the cloud chars into the back buffer with the rest of the front, so `para_fixup` (after each slice) puts the saved map chars and their shadow colours back there. TIMING: ~300 cycles a cell drawn, ~20 cells: ~7,600 cycles at 1 MHz, ~3,900 at 2x, done by about line 25 at 2x. Paused, the cloud just stays.
+  - Not done: extra particles (more sprites, against the 8-per-line limit).
+- Every turbo difference is under `!ifdef TURBO` or `IS_TURBO` (1 in the turbo build), and the stock build must stay byte for byte the same: check it against the last release commit after any turbo change. `python3 tools/check_map.py -D TURBO=1 --emu xscpu64` checks the turbo build's scrolling with the cloud on (it puts the cloud's saved map chars back in its copy before comparing).
+- Turbo memory: the code area has ~900 B left, DATA3 28 B (the cloud's strips are there), DATA2 0.5 KB. `src/turbo.asm` (the boot check and its screens) is assembled into the map ring (`RING`, `$7000-$7422`): it runs once at boot, and the first level's map overwrites it.
 
 ## Code conventions
 
@@ -186,6 +189,7 @@ Test builds use options that are only ever passed to ACME on the command line, f
   - `TEST_STALE_MEDAL`: enemy slots start as stale medals; pair it with `BOSS_TEST`.
   - `TEST_DIE_ON_CLEAR=n`: the player is shot down with n ships left, 40 frames before LEVEL CLEAR ends.
 - **Sound:** `TEST_SFX=n` plays effect n every 64 frames during play. `MUSIC_SOLO=n` plays only music voice n; 4 silences the music while it keeps running.
+- **Turbo:** `TURBO_MIN_TEST=1` (with `TURBO=1`) lets the turbo build run at 1 MHz, in x64sc, to time it there (it overruns: the timings are for scaling).
 - **Timing:**
   - `DEBUG` adds a red border bar for main-loop time, plus the dropped-spawn digit.
   - `PROFILE` shows exact worst-case cycle counts in the HUD, from CIA1 timer A, all in hex:

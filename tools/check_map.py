@@ -8,7 +8,9 @@ with the char rows of data/levels/levelN.png, as tools/png2level.py numbers
 the chars. It runs past the top of the picture into the boss loop.
 
 Usage:  python3 tools/check_map.py [N ...]      (default: all four levels)
-        [--steps 700] [--every 7]
+        [--steps 700] [--every 7] [-D TURBO=1 --emu xscpu64]
+(The turbo build's parallax cloud is on the screen: its saved map chars are
+put back in the copy that is compared, so a cloud char anywhere else fails.)
 Needs acme, x64sc and Pillow. Exit status 1 on any mismatch.
 """
 import argparse, json, os, subprocess, sys, tempfile, time
@@ -55,15 +57,16 @@ def char_grid(n):
     return grid, rows, cfg["boss_row"]
 
 
-def check(n, steps, every):
+def check(n, steps, every, defs=(), emu="x64sc"):
     grid, rows, boss = char_grid(n)
     record = lambda t: t if t < rows else boss + (t - boss) % (rows - boss)
     tmp = tempfile.mkdtemp(prefix="dxmap")
     prg, sym = os.path.join(tmp, "m.prg"), os.path.join(tmp, "m.sym")
     subprocess.run(["acme", "-f", "cbm", "-DAUTOSTART=1", "-DINVINCIBLE=1", f"-DSTART_LEVEL={n}",
+                    *[f"-D{d}" for d in defs],
                     "-l", sym, "-o", prg, "src/main.asm"], cwd=ROOT, check=True)
     s = symbols(sym)
-    emu = start(prg)
+    emu = start(prg, emu=emu)
     mon = Mon()
     checked = bad = 0
     try:
@@ -76,7 +79,14 @@ def check(n, steps, every):
             if row != record(t):
                 print(f"level {n}: step {t}: lvl_row is {row}, expected {record(t)}")
                 bad += 1
-            scr = mon.peek(SCREEN[mon.peek(s["front_buf"])[0]], SCROLL_ROWS * 40)
+            scr = list(mon.peek(SCREEN[mon.peek(s["front_buf"])[0]], SCROLL_ROWS * 40))
+            if "para_count" in s:      # the turbo build's cloud: its saved map chars back
+                cnt = mon.peek(s["para_count"])[0]
+                if cnt:
+                    lo, hi = mon.peek(s["para_idx_lo"], cnt), mon.peek(s["para_idx_hi"], cnt)
+                    codes = mon.peek(s["para_code"], cnt)
+                    for i in range(cnt):
+                        scr[lo[i] | hi[i] << 8] = codes[i]
             for k in range(SCROLL_ROWS):          # screen row k = the row before it in time
                 want = grid[rows - 1 - record(t - 1 - k)]
                 checked += 1
@@ -98,9 +108,11 @@ def main():
     ap.add_argument("levels", nargs="*", type=int, default=[1, 2, 3, 4])
     ap.add_argument("--steps", type=int, default=700, help="scroll steps to run")
     ap.add_argument("--every", type=int, default=7, help="check every Nth step")
+    ap.add_argument("-D", action="append", default=[], help="extra ACME define, e.g. TURBO=1")
+    ap.add_argument("--emu", default="x64sc", help="emulator: xscpu64 for the turbo build")
     a = ap.parse_args()
     subprocess.run(["make", "gen"], cwd=ROOT, check=True, stdout=subprocess.DEVNULL)
-    ok = all([check(n, a.steps, a.every) for n in a.levels])
+    ok = all([check(n, a.steps, a.every, a.D, a.emu) for n in a.levels])
     sys.exit(0 if ok else 1)
 
 

@@ -22,13 +22,20 @@
 ;      reads $FF and only the timing tells.
 ;   3. Below TURBO_MIN: a screen says how to set turbo in the OSD, and the
 ;      check repeats about once a second until it's on (in either mode).
+; All of it is assembled into the map ring (RING, main.asm): it runs once,
+; at boot, and the first level's map overwrites it. Nothing here may be
+; called after that (turbo_speed included).
 ; The title shows the speed found ("turbo 3x").
 ;
 ; Not for a real C128: its 2 MHz mode ($D030 bit 0 too) passes the test,
 ; but its VIC shows no picture at 2 MHz: step 0 catches it.
 ; =============================================================================
 
+!ifdef TURBO_MIN_TEST {
+TURBO_MIN    = TURBO_MIN_TEST   ; test hook: 1 runs the turbo build at 1 MHz
+} else {                        ;   (to time it on a stock machine, x64sc)
 TURBO_MIN    = 2                ; the least speed the turbo build accepts
+}
 TURBO_OUTER  = 16               ; the timed loop: TURBO_OUTER x 256 dex/bne
 TURBO_CYCLES = TURBO_OUTER * 1286 + 1 + 24  ; its cycles at 1 MHz (+ the reads)
 TURBO_ROW    = 3                ; the message screen's first row

@@ -104,6 +104,8 @@ mux_pin_mc    = $6d     ;   ...and $D01C bits
 shake_timer   = $6e     ; frames of screen shake left (the IRQ counts it down)
 fade_dir      = $6f     ; level.asm fades: 0 none, $FF in, 1 out
 fade_k        = $70     ;   steps darker than the palette (0 = full colour)
+                        ; $71-$78: the turbo build's parallax pointers
+                        ;   (para_up/sp/dp/cp, src/parallax.asm)
 ; $38-$40, $71-$84 and $89 are free
 
 ; ---- player state (player.asm) ----

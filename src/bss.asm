@@ -100,5 +100,11 @@ anim_ph     = BSS_PTR : +bss ANIM_MAX
 ; ---- generated code (scroll.asm: chase_gen) ----
 chase_code  = BSS_PTR : +bss CHASE_CODE_SIZE ; the colour RAM chase, unrolled
 
+!ifdef TURBO {                  ; the turbo build's parallax cloud (parallax.asm):
+PARA_SAVE   = 24                    ; = PARA_CELLS (checked there)
+para_idx_lo = BSS_PTR : +bss PARA_SAVE  ; the cells drawn: screen offset 0-999,
+para_idx_hi = BSS_PTR : +bss PARA_SAVE
+para_code   = BSS_PTR : +bss PARA_SAVE  ;   and the map char that was there
+}
 bss_end = BSS_PTR
 !if bss_end > $ff00 { !error "BSS too big: bss_init clears whole pages, up to the CPU vectors" }

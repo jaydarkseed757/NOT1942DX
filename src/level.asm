@@ -186,6 +186,9 @@ level_begin
         jsr init_input          ; a held fire button won't shoot at once
         jsr init_sprites
         jsr hud_init            ; the sprite HUD's slots
+!ifdef TURBO {
+        jsr para_reset          ; no parallax cloud yet
+}
         jsr player_place
         lda #0
         sta invuln_timer

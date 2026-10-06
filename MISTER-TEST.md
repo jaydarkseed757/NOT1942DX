@@ -39,6 +39,10 @@ Press **1-4** on the title to start at a level's boss, or play from level 1.
 - [ ] Music and sound effects play at normal speed (the game runs at 50 Hz
       whatever the CPU speed).
 - [ ] Level 4: the sea moves past the ships.
+- [ ] Turbo version: every few seconds a cloud drifts down over everything,
+      twice as fast as the land (yellow in level 3). It should look solid,
+      with no flicker, no torn edges, and nothing left behind where it was,
+      even at its top when it enters at the top of the screen (watch 2x most).
 - [ ] The standard version (`not1942dx.d64`) also plays normally with turbo
       on: it doesn't need it, but shouldn't mind it.
 

@@ -128,6 +128,10 @@ These assume at least 2× speed and are scaled by compile-time knobs:
 
 **Rules:** no cycle-counted code (raster IRQs and polling only), and minimal I/O access in the hot loops, since I/O runs at 1 MHz.
 
+### M14. Parallax clouds (done, turbo build only)
+
+Asked for after M13: the full-frame parallax layer M12 left out, as a cloud layer. `src/parallax.asm`: one cloud at a time, drawn with 24 chars at the top of the charset (each frame: the map char under each cell ORed with the cloud's pixels, at its current pixel offset), drifting at 2 pixels a frame against the map's 1. Restored and redrawn first in the border, so nothing tears; the scroller's slices copy it into the back buffer, and `para_fixup` puts the map back there after each slice. Checked on xscpu64: the scrolled picture (with the cloud's saved chars put back) matches every level's map; colour RAM matches the screen in play on normal and flip frames; pausing over it is clean; no drops or overruns. Timed at 1 MHz (x64sc, `TURBO_MIN_TEST`): ~7,600 cycles at worst, so ~3,900 at 2x, done by about line 25. The turbo boot check moved into the map ring to make room. The stock build is byte for byte unchanged.
+
 ### M13. Testing (done)
 
 Checked by the user on a MiSTer: everything in `MISTER-TEST.md` passed (detection in each OSD mode, play at 2x-4x, and the profiler disk from `make turbo-profile`). Added for safety: the turbo build recognises a real C128 by its `$D02F` and says to use the standard version, instead of switching it to 2 MHz and a blank screen.

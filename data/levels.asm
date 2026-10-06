@@ -54,6 +54,11 @@ lvl_t_name_hi   !byte >lvl_name1,       >lvl_name2,       >lvl_name3,       >lvl
 +level_checks LEVEL2_ROWS, LEVEL2_BOSS_ROW
 +level_checks LEVEL3_ROWS, LEVEL3_BOSS_ROW
 +level_checks LEVEL4_ROWS, LEVEL4_BOSS_ROW
+!ifdef TURBO {                  ; the parallax cloud's chars must stay free
+!if (LEVEL1_CHARS > PARA_CODE - FIRST_TILE) | (LEVEL2_CHARS > PARA_CODE - FIRST_TILE) | (LEVEL3_CHARS > PARA_CODE - FIRST_TILE) | (LEVEL4_CHARS > PARA_CODE - FIRST_TILE) {
+        !error "a level uses the turbo build's parallax chars (PARA_CODE..255)"
+}
+}
 
 ; Level names: 13 characters each, padded with spaces (screen codes).
 LVL_NAME_LEN = 13

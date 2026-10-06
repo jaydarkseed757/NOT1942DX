@@ -162,6 +162,10 @@ scroll_update
         cpx #SLICES
         bcs .next
         jsr run_slice           ; f = 1-6: build slice f - 1
+!ifdef TURBO {
+        ldx scroll_slice        ; the turbo build's cloud was copied too: put
+        jsr para_fixup          ;   the map back under it (parallax.asm)
+}
         inc scroll_slice
         lda scroll_fine
         cmp #1                  ; f = 1: slice 0 has drawn row_buf, so the

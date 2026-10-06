@@ -53,6 +53,19 @@
   <li><strong>1-4</strong> on the title screen: go straight to that level's boss</li>
 </ul>
 
+<h3>MiSTer turbo version</h3>
+<p>For the <strong>MiSTer</strong> FPGA's C64 core there is a second version that uses the core's turbo mode for a harder game:</p>
+<ul>
+  <li>More enemies: 120 to 140 a level instead of 83 to 96, up to seven planes at a time</li>
+  <li>Bosses with bullet patterns: sweeping fans of shots and aimed bursts</li>
+  <li>Room for more enemy fire on screen at once</li>
+  <li>Clouds drifting over everything at twice the speed of the land below, for a real sense of height</li>
+</ul>
+<p>It needs the core's <strong>Turbo mode</strong> set to <strong>C128</strong> or <strong>Smart</strong> and <strong>Turbo speed</strong> at 2x, 3x or 4x (open the OSD with F12). It checks at start-up: with turbo off it tells you what to set, and starts by itself as soon as turbo is on. The title screen shows the speed it found. It isn't for a real C128, whose graphics chip shows no picture at 2 MHz; it says so and asks for the standard version.</p>
+<p>The turbo files are <code>not1942dx-turbo.d64</code>, <code>.prg</code> and <code>.crt</code>. Load the disk with:</p>
+<pre>LOAD"NOT 1942 DX T",8,1
+RUN</pre>
+
 <h3>How to play</h3>
 <p>Download the disk image (<code>.d64</code>) and load it on a real C64 or in an emulator such as VICE:</p>
 <pre>LOAD"NOT 1942 DX",8,1

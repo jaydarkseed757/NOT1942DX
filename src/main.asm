@@ -132,6 +132,10 @@ main_loop
 }
 
         ; --- lower-border work first ---
+!ifdef TURBO {
+        jsr para_restore        ; the turbo build's cloud: off where it was,
+        jsr para_update         ;   on where it is now (first: it must be
+}                               ;   done before the raster reaches it)
         jsr scroll_update       ; smooth scroll: build a slice, next yscroll
         jsr anim_update         ; animated chars (before the raster reaches them)
         jsr fade_update         ; level start / end fades
@@ -205,8 +209,8 @@ debug_hex
 !source "src/anim.asm"
 !source "src/ending.asm"
 !ifdef TURBO {
-!source "src/turbo.asm"         ; the MiSTer turbo build only
-}
+!source "src/parallax.asm"      ; the MiSTer turbo build only (its boot
+}                               ;   check, turbo.asm, is in the map ring)
 
 code_end
 !if code_end > VIC_BASE {
@@ -236,12 +240,21 @@ code_end
 !source "data/ending.asm"       ; the ending's text
 !source "data/aim.asm"          ; the enemy shots' aiming table
 !source "data/tiles.asm"        ; the title logo's quadrant chars (a copy)
+!ifdef TURBO {
+!source "data/parallax.asm"     ; the turbo build's parallax cloud
+}                               ;   (tools/art/parallax_cloud.py)
 data3_end
 !if data3_end > RING {
         !error "DATA3 overflows into the map ring"
 }
                                 ; RING: the level map, unpacked at run time
-                                ;   (nothing is loaded there)
+                                ;   (nothing else is loaded there, except:)
+!ifdef TURBO {
+* = RING                        ; the turbo build's boot check: it runs once,
+!source "src/turbo.asm"         ;   before the title, and the first level's
+turbo_end                       ;   map overwrites it
+!if turbo_end > RING + RING_SIZE { !error "turbo.asm overflows the map ring" }
+}
 
 * = DATA2_BASE                  ; waves, bosses, level packs
 !source "data/waves.asm"        ; enemy types + paths (levels refer to them)
