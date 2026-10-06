@@ -1,0 +1,21 @@
+{
+ "png": "level3.png",
+ "label": "level3",
+ "bg": "purple",
+ "mc1": "brown",
+ "mc2": "orange",
+ "boss_row": 576,
+ "anim": {
+  "png": "level3_anim.png",
+  "rows": [
+   {
+    "frames": 4,
+    "delay": 7
+   },
+   {
+    "frames": 4,
+    "delay": 9
+   }
+  ]
+ }
+}

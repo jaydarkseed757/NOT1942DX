@@ -3,156 +3,59 @@
 ; These generate bytes and check data at assemble time. No runtime code.
 ; =============================================================================
 
-; Each level has a TILESET: the 64 chars with codes 64-127, copied into the
-; charset when the level starts. A tile's char code IS its ASCII code, so row
-; patterns can be written as plain text. Space (32) is the ROM-font blank.
-; Each tileset file sets TILE_CHARS (with !set) to the letters it defines, and
-; +rowpat checks rows against the most recent TILE_CHARS.
-TILESET_SIZE = 64 * 8           ; bytes copied per level: char codes 64-127
-
 ; -----------------------------------------------------------------------------
-; +mc "pppp" : one multicolour char row = 4 double-wide pixels -> 1 byte
-;   '.' = %00  ocean   (BGCOL0)
-;   'g' = %01  grass   (BGCOL1)
-;   'b' = %10  beach   (BGCOL2)
-;   'c' = %11  surf    (colour RAM, fixed for the whole playfield)
+; Level waves (data/levelN_waves.asm). The level's art is a picture
+; (data/levels/levelN.png, tools/png2level.py); a waves file says which
+; enemies come when. Rows count char rows from the bottom of the picture, in
+; the order they scroll in.
+;   +waves_start BOSS_ROW       begin. The boss comes when BOSS_ROW scrolls
+;                               in; the rows from there up loop meanwhile.
+;   +wave ROW, N                N spawns when ROW scrolls in, each a line of
+;   +spawn TYPE, X, PATH        an enemy: type, X (half-X, 0-171), path
+;   +waves_end
+; Format: per wave, ROW (16 bits), N, then N x (type, x, path); the list ends
+; with row $FFFF. The macros check that rows go up, that none is in the
+; first SCROLL_ROWS (drawn at once at the start) or at/after the boss row,
+; and that every wave has its N spawns.
 ; -----------------------------------------------------------------------------
-!macro mc .s {
-        !if len(.s) != 4 { !error "+mc needs exactly 4 pixels" }
-        !set .v = 0
-        !for .i, 0, 3 {
-                !set .c = .s[.i]
-                !set .p = -1
-                !if .c = '.' { !set .p = 0 }
-                !if .c = 'g' { !set .p = 1 }
-                !if .c = 'b' { !set .p = 2 }
-                !if .c = 'c' { !set .p = 3 }
-                !if .p < 0 { !error "+mc: pixel must be one of . g b c" }
-                !set .v = (.v << 2) | .p
-        }
-        !byte .v
-}
-
-; -----------------------------------------------------------------------------
-; +tileset_start : begin a tileset (char codes 64-127) at the current address.
-; +tile 'x'      : move to the slot for char code 'x' (zero-filling gaps).
-;                  Tiles must be in ascending char-code order, codes 64-127.
-; +tileset_end   : pad to the full 512 bytes (unused codes are blank).
-; -----------------------------------------------------------------------------
-!macro tileset_start {
-        !set TS_BASE = * - FIRST_TILE * 8
-}
-
-!macro tile .code {
-        !if .code < FIRST_TILE { !error "+tile: code is inside the font range" }
-        !if .code > 127 { !error "+tile: tiles use codes 64-127 (128+ are fixed chars)" }
-        !if * > TS_BASE + .code * 8 { !error "+tile: tiles out of order or overlapping" }
-        !if * < TS_BASE + .code * 8 {
-                !fill TS_BASE + .code * 8 - *, 0
-        }
-}
-
-!macro tileset_end {
-        !if * < TS_BASE + 128 * 8 {
-                !fill TS_BASE + 128 * 8 - *, 0
-        }
-}
-
-; -----------------------------------------------------------------------------
-; +rowpat "<40 chars>" : one background row pattern. Checks length and that
-; every char is a defined tile (a typo would otherwise show as plain ocean).
-; -----------------------------------------------------------------------------
-!macro rowpat .txt {
-        !if len(.txt) != COLS { !error "+rowpat: row must be exactly 40 chars" }
-        !for .i, 0, COLS - 1 {
-                !set .ok = 0
-                !for .j, 0, len(TILE_CHARS) - 1 {
-                        !if .txt[.i] = TILE_CHARS[.j] { !set .ok = 1 }
-                }
-                !if .ok = 0 { !error "+rowpat: unknown tile char (see TILE_CHARS)" }
-        }
-        !text .txt
-}
-
-; -----------------------------------------------------------------------------
-; Level stream records (format in data/level1.asm)
-; These keep assemble-time counters so mistakes fail the build:
-;   LVL_RECORDS     records so far (the first SCROLL_ROWS must have no spawns)
-;   LVL_SPAWNS_LEFT +spawn lines still owed by the last +row_spawn
-;   LVL_BOSS_ROWS   records after +boss_here (-1 = no boss marker yet)
-; Each level's row patterns end with  !set ROWPAT_COUNT = ...
-; Each level stream starts with +level_start and ends with +level_end.
-; -----------------------------------------------------------------------------
-LVL_END   = $ff
-LVL_BOSS  = $fe                 ; boss marker (1 byte, takes no scroll step)
 SPAWN_LEN = 3                   ; bytes per spawn entry: type, x, path
-MAX_SPAWNS_PER_ROW = 3          ; the record format's limit (well below ENEMY_COUNT)
+WAVE_HEAD = 3                   ; bytes before a wave's entries: row, count
+WAVE_END  = $ffff
+MAX_SPAWNS_PER_ROW = ENEMY_COUNT
 
-!set LVL_RECORDS = 0
-!set LVL_SPAWNS_LEFT = 0
-!set LVL_BOSS_ROWS = -1
-
-; +level_start : reset the per-level counters
-!macro level_start {
-        !set LVL_RECORDS = 0
-        !set LVL_SPAWNS_LEFT = 0
-        !set LVL_BOSS_ROWS = -1
+!macro waves_start .boss {
+        !if (.boss < SCROLL_ROWS) | (.boss >= WAVE_END) { !error "+waves_start: the boss row must come after the first screen" }
+        !set WAVE_BOSS = .boss
+        !set WAVE_LAST = -1
+        !set WAVE_LEFT = 0
 }
 
-!macro lvl_check_spawns_done {
-        !if LVL_SPAWNS_LEFT != 0 { !error "previous +row_spawn is missing +spawn lines" }
-}
-
-; +row PAT : a row with no enemy spawns
-MAX_ROWPATS = LVL_BOSS          ; pattern numbers 0-253 ($FE/$FF are markers)
-
-!macro row .pat {
-        +lvl_check_spawns_done
-        !if .pat >= ROWPAT_COUNT { !error "+row: row pattern index out of range" }
-        !byte .pat, 0
-        !set LVL_RECORDS = LVL_RECORDS + 1
-        !if LVL_BOSS_ROWS >= 0 { !set LVL_BOSS_ROWS = LVL_BOSS_ROWS + 1 }
-}
-
-; +row_spawn PAT, N : a row that spawns N enemies; follow with N +spawn lines
-!macro row_spawn .pat, .n {
-        +lvl_check_spawns_done
-        !if .pat >= ROWPAT_COUNT { !error "+row_spawn: row pattern index out of range" }
-        !if (.n < 1) | (.n > MAX_SPAWNS_PER_ROW) { !error "+row_spawn: spawn count must be 1-3" }
-        !if LVL_RECORDS < SCROLL_ROWS { !error "+row_spawn: no spawns allowed in the first 25 (pre-drawn) records" }
-        !if LVL_BOSS_ROWS >= 0 { !error "+row_spawn: no spawns after +boss_here (the boss owns the enemy slots)" }
-        !byte .pat, .n
-        !set LVL_SPAWNS_LEFT = .n
-        !set LVL_RECORDS = LVL_RECORDS + 1
+!macro wave .row, .n {
+        !if WAVE_LEFT != 0 { !error "previous +wave is missing +spawn lines" }
+        !if .row < SCROLL_ROWS { !error "+wave: no spawns in the first 25 rows (they're on screen at the start)" }
+        !if .row <= WAVE_LAST { !error "+wave: rows must go up" }
+        !if .row >= WAVE_BOSS { !error "+wave: no spawns from the boss row on (the boss owns the enemy slots)" }
+        !if (.n < 1) | (.n > MAX_SPAWNS_PER_ROW) { !error "+wave: 1 to ENEMY_COUNT spawns" }
+        !word .row
+        !byte .n
+        !set WAVE_LAST = .row
+        !set WAVE_LEFT = .n
 }
 
 ; +spawn TYPE, X, PATH : one enemy. X is half-X (0-171): 12-160 is fully on
 ; screen, 0 / 171 start just off the left / right edge (for side-entry paths).
 !macro spawn .type, .x, .path {
-        !if LVL_SPAWNS_LEFT <= 0 { !error "+spawn without a matching +row_spawn count" }
+        !if WAVE_LEFT <= 0 { !error "+spawn without a matching +wave count" }
         !if .type >= ENEMY_TYPES { !error "+spawn: unknown enemy type" }
         !if .x > ENEMY_X_KILL - 1 { !error "+spawn: x must be 0-171 (half-X)" }
         !if .path >= PATH_COUNT { !error "+spawn: unknown path" }
         !byte .type, .x, .path
-        !set LVL_SPAWNS_LEFT = LVL_SPAWNS_LEFT - 1
+        !set WAVE_LEFT = WAVE_LEFT - 1
 }
 
-; +boss_here : the waves are over; the boss fight starts. The records after
-; this marker are the background that loops for the rest of the level.
-!macro boss_here {
-        +lvl_check_spawns_done
-        !if LVL_RECORDS < SCROLL_ROWS { !error "+boss_here: not inside the 25 pre-drawn records" }
-        !if LVL_BOSS_ROWS >= 0 { !error "+boss_here: only one boss per level" }
-        !byte LVL_BOSS
-        !set LVL_BOSS_ROWS = 0
-}
-
-; +level_end : end of stream. The scroller loops back to just after
-; +boss_here (or to the start if there is no boss marker).
-!macro level_end {
-        +lvl_check_spawns_done
-        !if LVL_BOSS_ROWS = 0 { !error "+level_end: the boss loop needs at least one row" }
-        !byte LVL_END
+!macro waves_end {
+        !if WAVE_LEFT != 0 { !error "the last +wave is missing +spawn lines" }
+        !word WAVE_END
 }
 
 ; -----------------------------------------------------------------------------

@@ -37,8 +37,9 @@ INVULN_FRAMES  = 100            ; 2 seconds at 50 Hz after a respawn
 BLINK_MASK     = %00000100      ; ship shown while (invuln_timer & mask) = 0:
                                 ;   4 frames on, 4 frames off
 DEATH_FRAMES   = 75             ; 1.5 s from the hit to the respawn
-DEATH_ANIM     = 24             ; the explosion shows for the first 24 frames,
-                                ;   alternating shapes every 4 frames
+DEATH_ANIM     = EXPL_SHAPES * 4 ; the explosion (expanded: 48 px wide) shows
+                                ;   for the first 24 frames, 4 per shape
+SHAKE_DEATH    = 20             ; frames of screen shake when the ship goes
 
 PS_ALIVE    = 0
 PS_DEAD     = 1
@@ -64,6 +65,8 @@ player_place
         sta spr_ptr + SLOT_PLAYER
         lda #COL_PLAYER
         sta spr_col + SLOT_PLAYER
+        lda #0
+        sta spr_exp + SLOT_PLAYER       ; (the explosion was expanded)
         lda #1
         sta spr_on + SLOT_PLAYER
         rts
@@ -84,10 +87,22 @@ player_die
         jsr hud_draw_lives
         lda #SFX_PLAYER_DIE
         jsr sfx_start
-        lda #PTR_EXPL_A
-        sta spr_ptr + SLOT_PLAYER
-        lda #COL_EXPLOSION
-        sta spr_col + SLOT_PLAYER
+        lda expl_ptr            ; the explosion sequence, X+Y expanded and
+        sta spr_ptr + SLOT_PLAYER ; centred on the ship (art 12x12 at 2x =
+        lda expl_col            ;   24 half-X x 24 px, round the ship's
+        sta spr_col + SLOT_PLAYER ; centre at +6, +7)
+        lda #$ff
+        sta spr_exp + SLOT_PLAYER
+        lda player_xh
+        sec
+        sbc #6
+        sta player_xh
+        lda player_y
+        sec
+        sbc #5
+        sta player_y
+        lda #SHAKE_DEATH
+        sta shake_timer
         lda #1                  ; make sure the explosion is visible even if
         sta spr_on + SLOT_PLAYER ;  the hit came mid-blink
         rts
@@ -113,15 +128,23 @@ player_update
         lda player_timer
         cmp #DEATH_FRAMES - DEATH_ANIM
         bcc .hide               ; explosion over: hidden until respawn
-        and #%00000100          ; swap explosion shapes every 4 frames
-        beq +
-        lda #PTR_EXPL_B
-        bne ++
-+       lda #PTR_EXPL_A
-++      sta spr_ptr + SLOT_PLAYER
+        lda #DEATH_FRAMES       ; frames since the hit / 4 = the shape
+        sec
+        sbc player_timer
+        lsr
+        lsr
+        cmp #EXPL_SHAPES
+        bcc +
+        lda #EXPL_SHAPES - 1
++       tay
+        lda expl_ptr,y
+        sta spr_ptr + SLOT_PLAYER
+        lda expl_col,y
+        sta spr_col + SLOT_PLAYER
         rts
 .hide   lda #0
         sta spr_on + SLOT_PLAYER
+        sta spr_exp + SLOT_PLAYER
         rts
 .respawn
         lda lives

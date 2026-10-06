@@ -30,59 +30,92 @@ LS_NEXT  = 3
 
 !zone level_load
 ; -----------------------------------------------------------------------------
-; level_load: copy the current level's table entry into zero page.
-; Clobbers A, X.
+; level_load: the current level's palette, size, boss row and first wave
+; from the level table (data/levels.asm). Clobbers A, X.
 ; -----------------------------------------------------------------------------
 level_load
         ldx level
-        lda lvl_t_stream_lo,x
-        sta lvl_start
-        lda lvl_t_stream_hi,x
-        sta lvl_start+1
-        lda lvl_t_rowpat_lo,x
-        sta lvl_rowpats
-        lda lvl_t_rowpat_hi,x
-        sta lvl_rowpats+1
         lda lvl_t_bg,x
         sta pal_bg
         lda lvl_t_mc1,x
         sta pal_mc1
         lda lvl_t_mc2,x
         sta pal_mc2
-        lda lvl_t_cram,x
-        sta pal_cram
+        lda lvl_t_rows_lo,x
+        sta lvl_rows
+        lda lvl_t_rows_hi,x
+        sta lvl_rows+1
+        lda lvl_t_boss_lo,x
+        sta lvl_boss
+        lda lvl_t_boss_hi,x
+        sta lvl_boss+1
+        lda lvl_t_waves_lo,x
+        sta wave_ptr
+        lda lvl_t_waves_hi,x
+        sta wave_ptr+1
         rts
 
-!zone copy_tileset
+!zone level_unpack
 ; -----------------------------------------------------------------------------
-; copy_tileset: the current level's 512-byte tileset -> char codes 64-127.
-; Display must be off (or the change would show mid-frame). Clobbers A, X, Y,
-; zp_ptr0, zp_ptr1.
+; level_unpack: unpack the current level's chars (to the charset, codes 64
+; and up) and their colours (CHAR_COL; chars 0-63 get the default), and
+; start its map stream (scroll.asm unpacks that a row at a time). Display
+; must be off. TIMING: a frame or so (~15 cycles per byte unpacked).
+; Clobbers A, X, Y, zp_ptr0, zp_ptr1, lz_mp.
 ; -----------------------------------------------------------------------------
-copy_tileset
+level_unpack
+        jsr init_char_col       ; defaults (and the TEST_CHAR_COL colours)
         ldx level
-        lda lvl_t_tiles_lo,x
+        lda lvl_t_chars_lo,x
         sta zp_ptr0
-        lda lvl_t_tiles_hi,x
+        lda lvl_t_chars_hi,x
         sta zp_ptr0+1
         lda #<(CHARSET + FIRST_TILE * 8)
         sta zp_ptr1
         lda #>(CHARSET + FIRST_TILE * 8)
         sta zp_ptr1+1
-        ldx #TILESET_SIZE / 256
-        ldy #0
--       lda (zp_ptr0),y
-        sta (zp_ptr1),y
-        iny
-        bne -
-        inc zp_ptr0+1
-        inc zp_ptr1+1
-        dex
-        bne -
+        jsr unpack
+!ifndef TEST_CHAR_COL {
+        ldx level
+        lda lvl_t_cols_lo,x
+        sta zp_ptr0
+        lda lvl_t_cols_hi,x
+        sta zp_ptr0+1
+        lda #<(CHAR_COL + FIRST_TILE)
+        sta zp_ptr1
+        lda #>(CHAR_COL + FIRST_TILE)
+        sta zp_ptr1+1
+        jsr unpack
+}
+        ldx level               ; the map stream, from its start
+        lda lvl_t_map_lo,x
+        sta st_src
+        lda lvl_t_map_hi,x
+        sta st_src+1
+        lda lvl_t_loop_lo,x
+        sta st_loop
+        lda lvl_t_loop_hi,x
+        sta st_loop+1
+        lda #<RING
+        sta st_wp
+        lda #>RING
+        sta st_wp+1
+        lda #0
+        sta st_left
+        sta st_out
         rts
 
-!if (CHARSET + FIRST_TILE * 8) & $ff { !error "tileset target must be page aligned" }
-!if TILESET_SIZE & $ff { !error "tileset size must be whole pages" }
+!if (CHARSET + FIRST_TILE * 8) & $ff { !error "level chars must start on a page" }
+
+; restore_quads: put the title logo's quadrant chars (128-143, data/tiles.asm)
+; back into the charset; a level's chars overwrite them. Clobbers A, X.
+restore_quads
+        ldx #QUAD_CHARS * 8 - 1
+-       lda quad_chars,x
+        sta CHARSET + QUAD_BASE * 8,x
+        dex
+        bpl -
+        rts
 
 !zone level_intro_enter
 ; -----------------------------------------------------------------------------
@@ -136,7 +169,7 @@ intro_update
 !zone level_begin
 ; -----------------------------------------------------------------------------
 ; level_begin: build the current level and start playing it.
-; TIMING: a few frames with the display off (tileset copy + 25-row prefill).
+; TIMING: a few frames with the display off (unpacking + 25-row prefill).
 ; -----------------------------------------------------------------------------
 level_begin
 !ifdef PROFILE {
@@ -144,8 +177,8 @@ level_begin
 }
         jsr level_load
         jsr init_video          ; display off, clean screens, level palette
-        jsr copy_tileset
-        jsr init_char_col       ; colour RAM value of every char
+        jsr level_unpack        ; its chars, colours and map stream
+        jsr anim_init           ; its animated chars
         jsr scroll_init         ; pre-draw the first screen of the level
         jsr init_input          ; a held fire button won't shoot at once
         jsr init_sprites
@@ -176,6 +209,7 @@ level_begin
         jsr hud_draw_level
         jsr hud_update          ; draw its shapes
         jsr mux_build           ; sprites from the first frame on
+        jsr fade_in_start       ; it starts dark and lights up
         lda #LS_PLAY
         sta lvl_state
         lda #GM_PLAY
@@ -250,10 +284,89 @@ level_update
         jsr player_die
 +       lda lvl_timer
 }
+        beq +
+        lda lvl_timer           ; the last FADE_FRAMES: fade out
+        cmp #FADE_FRAMES
         bne .done
-        lda #LS_NEXT            ; main loop switches level next frame
+        lda #1
+        sta fade_dir
+        lda #0
+        sta fade_k
+        beq .done               ; (always)
++       lda #LS_NEXT            ; main loop switches level next frame
         sta lvl_state
 .done   rts
+
+!zone fade
+; -----------------------------------------------------------------------------
+; Fades: the shared colours ($D021-$D023, from pal_*) step through
+; fade_darker, FADE_STEPS steps FADE_EVERY frames apart (the last is black). Chars' own colours (colour RAM) stay as they are,
+; so a level seems to light up from its details. fade_dir: 0 = none, $FF =
+; fading in (fade_k counts down to 0), 1 = fading out (up to FADE_STEPS).
+; fade_update runs in the border work. Clobbers A, X, Y.
+; -----------------------------------------------------------------------------
+FADE_STEPS  = 4
+FADE_EVERY  = 4
+FADE_FRAMES = FADE_STEPS * FADE_EVERY
+
+; fade_in_start: the level starts dark (call before the display goes on).
+fade_in_start
+        lda #$ff
+        sta fade_dir
+        lda #FADE_STEPS
+        sta fade_k
+        jmp fade_apply
+
+fade_update
+        lda fade_dir
+        beq .out
+        lda frame_count
+        and #FADE_EVERY - 1
+        bne .out
+        lda fade_dir
+        bmi .in
+        lda fade_k              ; out: one step darker, until black
+        cmp #FADE_STEPS
+        bcs .out
+        inc fade_k
+        bne fade_apply          ; (always)
+.in     dec fade_k              ; in: one step brighter, then done
+        bne fade_apply
+        lda #0
+        sta fade_dir
+        ; (fall through: full colours)
+fade_apply
+        ldy #2
+.col    ldx pal_bg,y            ; (pal_bg, pal_mc1, pal_mc2 are adjacent)
+        lda fade_k
+        beq .set                ; full colour
+        cmp #FADE_STEPS
+        bcc +
+        ldx #COL_BLACK          ; the last step is black, whatever the colour
+        bcs .set
++       sta zp_tmp0
+.dark   lda fade_darker,x       ; fade_k steps darker
+        tax
+        dec zp_tmp0
+        bne .dark
+.set    txa
+        sta BGCOL0,y
+        dey
+        bpl .col
+.out    rts
+
+; the next darker colour, keeping its hue where the C64 has one (black
+; stays black; at most 4 steps from white to black):
+;   white > light grey > grey > dark grey > black,  light green > green >
+;   dark grey,  yellow > orange > brown,  light red > red > brown,  cyan >
+;   light blue > blue,  purple > blue
+fade_darker
+        !byte COL_BLACK, COL_LGREY, COL_BROWN, COL_LBLUE      ; 0-3
+        !byte COL_BLUE, COL_DGREY, COL_BLACK, COL_ORANGE      ; 4-7
+        !byte COL_BROWN, COL_BLACK, COL_RED, COL_BLACK        ; 8-11
+        !byte COL_DGREY, COL_GREEN, COL_BLUE, COL_GREY        ; 12-15
+!if pal_mc1 != pal_bg + 1 | pal_mc2 != pal_bg + 2 { !error "fade_apply: pal_* must be adjacent" }
+!if BGCOL1 != BGCOL0 + 1 | BGCOL2 != BGCOL0 + 2 { !error "fade_apply: colour registers" }
 
 !zone level_next
 ; -----------------------------------------------------------------------------

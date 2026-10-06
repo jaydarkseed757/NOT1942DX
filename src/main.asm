@@ -127,6 +127,8 @@ main_loop
 
         ; --- lower-border work first ---
         jsr scroll_update       ; smooth scroll: build a slice, next yscroll
+        jsr anim_update         ; animated chars (before the raster reaches them)
+        jsr fade_update         ; level start / end fades
 
         ; --- game logic: only touches shadow state, safe mid-screen ---
         jsr read_input
@@ -193,6 +195,8 @@ debug_hex
 !source "src/pause.asm"
 !source "src/level.asm"
 !source "src/boss.asm"
+!source "src/unpack.asm"
+!source "src/anim.asm"
 !source "src/ending.asm"
 
 !source "data/ending.asm"       ; ending text (small; lives with the code)
@@ -202,35 +206,18 @@ code_end
 }
 
 ; -----------------------------------------------------------------------------
-; Data (assembled at fixed addresses inside VIC bank 1 / level area)
+; Data (assembled at fixed addresses; memory map in src/defs.asm)
 ; -----------------------------------------------------------------------------
 !zone data
-* = CHARSET + QUAD_BASE * 8     ; fixed chars (tilesets are copied to 64-127)
-!source "data/tiles.asm"
-!if * > SPRITES {
-        !error "fixed chars overflow into sprite area"
-}
-
 * = SPRITES                     ; sprite shapes
 !source "data/sprites.asm"
-!if * > LEVEL_BASE {
-        !error "sprites overflow into level area"
+!if * > RING {
+        !error "sprites overflow into the map ring"
 }
+                                ; RING: the level map, unpacked at run time
+                                ;   (nothing is loaded there)
 
-* = LEVEL_BASE                  ; waves, tilesets, levels
-!source "data/waves.asm"        ; enemy types + paths (levels refer to them)
-!source "data/tiles_ocean.asm"  ; sets TILE_CHARS for the row patterns below
-!source "data/level1.asm"
-!source "data/tiles_fleet.asm"  ; sets TILE_CHARS for the level 4 rows below
-!source "data/level4.asm"
-!source "data/bosses.asm"
-!source "data/levels.asm"
-level_end
-!if level_end > DATA2_BASE {
-        !error "level data overflows into DATA2 ($8000)"
-}
-
-* = DATA2_BASE                  ; music, title screen, big levels
+* = DATA2_BASE                  ; music, title, waves, bosses, level packs
 !source "data/music.asm"
 !source "data/music_title.asm"
 !source "data/music_boss.asm"
@@ -240,10 +227,18 @@ level_end
 !source "data/songs.asm"
 !source "data/sfx.asm"
 !source "data/title.asm"
-!source "data/tiles_jungle.asm" ; sets TILE_CHARS for the level 2 rows below
-!source "data/level2.asm"
-!source "data/tiles_strait.asm" ; sets TILE_CHARS for the level 3 rows below
-!source "data/level3.asm"
+!source "data/tiles.asm"        ; the title logo's quadrant chars (a copy)
+!source "data/waves.asm"        ; enemy types + paths (levels refer to them)
+!source "data/bosses.asm"
+!source "build/gen/level1.asm"  ; level packs, made from data/levels/*.png
+!source "build/gen/level2.asm"  ;   by tools/png2level.py (see the Makefile)
+!source "build/gen/level3.asm"  ;   (before the waves: they use its boss row)
+!source "build/gen/level4.asm"
+!source "data/level1_waves.asm"
+!source "data/level2_waves.asm"
+!source "data/level3_waves.asm"
+!source "data/level4_waves.asm"
+!source "data/levels.asm"
 data2_end
 !if data2_end > DATA2_END {
         !error "DATA2 overflows into I/O ($D000)"

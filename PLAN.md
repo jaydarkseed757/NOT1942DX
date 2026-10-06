@@ -64,24 +64,25 @@ As built (`src/hud.asm`):
 - To keep the busiest boss frames in budget: the colour chase became generated straight-line code in BSS, the slices moved to f = 1-7 (f = 0 absorbs a late chase), and the sort skips slots that aren't drawn.
 - **Gate (met):** zero play overruns and zero dropped sprites in all 4 levels, up to 16 sprites on screen; see `BUDGET.MD`.
 
-### M4. New level format + asset pipeline
-- **Map format:** 4×4-character *blocks* (16 bytes each, up to 256 per level), a map of 10 block indices per 4 character rows, and a per-character colour table. This replaces 40-byte row patterns: about 1.4 KB of map per 540-row level instead of about 21 KB.
-- **Tilesets:** up to about 190 characters per level (64-255, minus the fixed characters). The font shrinks to the glyphs that are actually used.
-- **Spawns:** keep the stream semantics. Spawns are keyed to map rows, `+boss_here` stays, and the existing macros keep checking the data at assemble time.
-- **`tools/png2level.py` (Pillow is installed):** reads a level drawn as a 160×N multicolour PNG and enforces the C64 limits (3 shared colours plus 1 colour from 0-7 per character). It removes duplicate characters and blocks, then writes ACME data. Each level's spawn script stays in hand-written `.asm` beside it.
-- **`tools/png2sprites.py`:** sprite sheets go from PNG to `+spr`-compatible data.
-- **Level conversion:** already done in M1 (`tools/stretch_level.py`); the new art replaces the stretched NOT 1942 maps.
-- **Memory:** level packs are stored compressed (exomizer raw mode). They are unpacked at level start into a fixed level work area by exomizer's 6502 decruncher, ported to ACME syntax and fetched from exomizer's own source distribution. The VIC bank gets bigger sprite space (`$5000-$7FFF`, about 190 shapes). Rewrite the memory map at the top of `src/defs.asm` and add `!error` guards for every new region. Dev builds also go through exomizer when data lives under I/O (`$D000-$FFFF`).
+### M4. New level format + asset pipeline (done)
+As built:
+- **Levels are pictures:** `data/levels/levelN.png` + `levelN.json` (shared colours, boss row). `tools/png2level.py` checks the C64 limits (3 shared colours + 1 own colour 0-7 per char, at most 192 chars), removes duplicate chars and writes packed chars, colours and the char map (`build/gen/levelN.asm`, from the Makefile).
+- **Streamed char map instead of 4x4 blocks.** Blocks hit their limit at once on varied art (level 1's scattered waves needed 280 4x4 blocks, and a recoloured test 268 even as 4x2), while a plain char map, LZ-packed, came out smaller (1.2-1.7 KB a level) with no block limit. The game unpacks it a row at a time, 8 chars a frame on f = 1-5, through a 4 KB ring (`$7000-$7FFF`); the boss loop is a second stream the unpacker repeats.
+- **Spawns** moved to hand-written `data/levelN_waves.asm` (`+waves_start` / `+wave ROW, N` / `+spawn` / `+waves_end`), keyed to picture rows, with the old checks (first screen, row order, boss rows).
+- **Packing:** a small LZ format (`tools/c64gfx.py`) with a 6502 unpacker (`src/unpack.asm`) for the chars and colours at level start; written from scratch rather than porting exomizer's decruncher.
+- **Memory:** sprites `$5000-$6FFF` (128 shapes, from 32); all data in `$8000-$CFFF` (8 KB free now). The old row patterns, streams and tilesets are gone; the title logo's chars are restored for the title and text screens.
+- **Sprites:** `tools/png2sprites.py` turns a sprite sheet into `+spr` text art and back (`--export`); checked by a round trip of all 24 sprites.
+- **Migration:** NOT 1942's four levels were exported to PNGs + waves files (a one-off script); `tools/check_map.py` checks the scrolled screen against the picture, row by row, into the boss loop (all four levels match).
+- **CPU:** the top HUD's 4 sprites are now pinned entries of the multiplexer's lists (not sorted), the sort checks the common in-place case first, and the slices are on f = 1-6 with f = 7 kept for the colour chase.
 
-### M5. Graphics FX
-- Animated tiles: water, surf and fires, by rewriting a few characters every N frames.
-- A cloud layer: characters redefined at a different scroll rate, for cheap parallax.
-- Multi-frame explosions with debris, and screen shake through XSCROLL.
-- 1942-style shadows for the player and the larger planes, if the multiplexer budget allows.
-- Level intro and outro with fades, done with colour-table steps.
-- A new title screen: a multicolour character logo with colour cycling, and a sprite plane flyby.
-
-Each effect goes into `BUDGET.MD` with its measured cost.
+### M5. Graphics FX (done)
+As built:
+- **Animated chars** (`src/anim.asm`): each level may animate up to 16 chars, from an animation strip next to its picture (`levelN_anim.png`, read by `tools/png2level.py`). Frame animations cycle a char's bitmaps; `scroll` rotates a char's texture against the map, for parallax. At most 2 chars are rewritten a frame, in the border work. Today's levels: rolling waves and lapping surf (level 1), twinkling glints (2, 3), stormy waves and blinking portholes (4). Parallax is ready for Phase 2 art; today's levels have no texture it would suit.
+- **Explosions:** a 6-shape sequence (flash, fireball, ring, break-up, smoke, wisps) going yellow, orange, red. The player's is expanded to 48 px. Each boss part runs it out of step.
+- **Screen shake:** `$D016` xscroll jitter from the frame IRQ, on boss and player deaths.
+- **Fades:** the shared colours fade in at level start and out at the end of LEVEL CLEAR, along hue-keeping chains. Chars' own colours stay lit, so a level seems to light up from its details.
+- **Title:** "DX" in block letters under the logo, and a V of fighters flies past every 5 s. (Colour cycling was tried and dropped: the user prefers static colours.)
+- **Not done:** plane shadows. Every shadow is another sprite, which the busiest boss frames can't afford, and hardware priority would sometimes draw it over its plane.
 
 ## Phase 2 — Content remaster
 

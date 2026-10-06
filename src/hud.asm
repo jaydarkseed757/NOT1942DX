@@ -148,6 +148,7 @@ hud_show_boss
 .boss   !scr "   boss!   "
 hud_show_clear
         +print_hud HUD_MID_COL, .clear, 11
+        jsr mux_pins_changed
         lda #0                  ; the bar goes, the message comes and stays
         sta spr_on + SLOT_HUD_BAR
         sta hud_msg_timer
@@ -156,6 +157,7 @@ hud_show_clear
 .clear  !scr "level clear"
 hud_clear_mid
         +print_hud HUD_MID_COL, .blank, 11
+        jsr mux_pins_changed
         lda #0
         sta spr_on + SLOT_HUD_BAR
         sta hud_msg_timer
@@ -189,9 +191,12 @@ hud_draw_boss_hp
         sbc boss_t_hp_block,y
         bcs -                   ; (borrow = went below zero: done)
 +       stx zp_tmp0
-        lda #1
+        lda spr_on + SLOT_HUD_BAR
+        bne +
+        lda #1                  ; the bar comes on (a pinned slot)
         sta spr_on + SLOT_HUD_BAR
-        cpx hud_bar_n           ; redraw the bar only when a block goes
+        jsr mux_pins_changed
++       cpx hud_bar_n           ; redraw the bar only when a block goes
         beq +
         stx hud_bar_n
         lda #HUD_D_BAR
@@ -231,6 +236,7 @@ hud_init
         sta spr_on + SLOT_HUD0,x
         dex
         bpl -
+        jsr mux_pins_changed
         lda #0
         sta hud_msg
         sta hud_msg_timer

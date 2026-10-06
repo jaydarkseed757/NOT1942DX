@@ -126,9 +126,18 @@ irq_frame                       ; (mux_irq jumps here if it ran past line 251)
 ++      lda #0
         sta flip_pending
 +       lda scroll_d011         ; in play: yscroll and the 24-row window for
-        beq +                   ;   the coming frame (scroll.asm), every frame
+        beq ++                  ;   the coming frame (scroll.asm), every frame
         sta VIC_CTRL1
-+       jsr mux_frame           ; sprites: the first 8, and the IRQs for the
+        lda shake_timer         ; ...and the screen shake: xscroll jitters
+        beq +                   ;   0-3 pixels (sprites stay put: the ground
+        dec shake_timer         ;   rumbles under them)
+        lda frame_count
+        and #7
+        tax
+        lda .shake,x
++       ora #%00011000          ; multicolour, 40 columns
+        sta VIC_CTRL2
+++       jsr mux_frame           ; sprites: the first 8, and the IRQs for the
                                 ;   rest (mux.asm)
         inc frame_count
         lda #1
@@ -168,6 +177,8 @@ nmi_handler                     ; RESTORE key (NMI) lands here and is ignored
 brk_trap
 -       inc BORDER
         jmp -
+
+.shake  !byte 0, 2, 1, 3, 0, 3, 1, 2      ; xscroll steps of the screen shake
 
 !ifdef PROFILE {
 !zone prof_frame

@@ -22,21 +22,23 @@
 ;                the raster IRQ flips $D018 during the lower border.
 ;   $4800-$4FFF  CHARSET   - 256 chars:
 ;                  chars   0-63  : font, copied from character ROM at boot
-;                  chars  64-127 : the level's tileset (copied at level start)
-;                  chars 128-143 : 2x2 block quadrants for the title logo
-;                  chars 144-223 : the ending's big scroller strip
-;                  chars 224-255 : free
-;   $5000-$57FF  SPRITES   - 32 sprite shapes x 64 bytes (pointers $40-$5F)
-;   $5800-$7FFF  LEVEL     - waves, tilesets, level streams, level table
-;                            (CPU-only data; the VIC never reads it)
+;                  chars  64-255 : in play, the level's chars (unpacked at
+;                                  level start, up to 192)
+;                  chars 128-143 : on the title and text screens, the logo's
+;                                  2x2 block quadrants (restore_quads)
+;                  chars 144-223 : in the ending, its big scroller strip
+;   $5000-$6FFF  SPRITES   - 128 sprite shapes x 64 bytes (pointers $40-$BF)
+;   $7000-$7FFF  RING      - the level map's last 4 KB, unpacked a row at a
+;                            time as it scrolls in (CPU-only; not loaded)
 ;
 ;   $8000-$CFFF  DATA2     - music, songs, sound effects, title screen data,
-;                            levels 2 and 3 (20 KB)
+;                            waves, bosses, the level packs (20 KB)
 ;   $D000-$DFFF  I/O (VIC, SID, colour RAM, CIAs)
 ;   $E000-$FFFF  RAM under KERNAL; we put our IRQ/NMI vectors at $FFFA-$FFFF.
 ;   $E000-       BSS: run-time tables (sprite slots, multiplexer lists,
-;                enemies, bullets; src/bss.asm). Nothing is loaded there:
-;                bss_init clears it at boot. A plain LOAD can't fill
+;                enemies, bullets, the generated colour-chase code;
+;                src/bss.asm). Nothing is loaded there: init_system clears
+;                it at boot. A plain LOAD can't fill
 ;                $D000-$FFF9 (I/O sits at $D000), but the exomizer unpacker
 ;                could.
 ;
@@ -110,14 +112,15 @@ SCREEN_A    = $4000
 SCREEN_B    = $4400
 CHARSET     = $4800
 SPRITES     = $5000
-LEVEL_BASE  = $5800
+RING        = $7000         ; 4 KB aligned: the unpacker wraps on the high byte
+RING_SIZE   = $1000
 DATA2_BASE  = $8000
 DATA2_END   = $d000             ; I/O starts here; a PRG can't load past it
 
 SPRPTR_OFS  = $03f8                     ; sprite pointers live at screen + $3F8
 SPR_PTR0    = (SPRITES - VIC_BASE) / 64 ; first sprite pointer value ($40)
 
-FIRST_TILE  = 64                        ; first background char (after font)
+FIRST_TILE  = 64                        ; first level char (after the font)
 CHAR_BLANK  = 32                        ; ROM font space = all zero bits
 
 ; $DD00 value bits 0-1 for VIC bank 1 ($4000): %10
@@ -165,16 +168,11 @@ COL_LGREEN  = 13
 COL_LBLUE   = 14
 COL_LGREY   = 15
 
-; Background palette (multicolour chars, pixel letters used in data/tiles.asm):
-;   %00 '.' = BGCOL0  ocean
-;   %01 'g' = BGCOL1  grass
-;   %10 'b' = BGCOL2  beach / tree outline
-;   %11 'c' = colour RAM: surf and waves (fixed for the whole playfield, 0-7 only)
+; The title screen's palette (each level's is in data/levels/levelN.json):
+; $D021, $D022, $D023. Every char has its own colour RAM colour (CHAR_COL).
 PAL_OCEAN   = COL_BLUE
 PAL_MC1     = COL_LGREEN
 PAL_MC2     = COL_BROWN
-PAL_CRAM    = COL_CYAN      ; must be 0-7
-CRAM_PLAY   = PAL_CRAM | 8  ; bit 3 set = multicolour char
 CRAM_HUD    = COL_WHITE     ; < 8 = hires char
 
 ; ---- raster timing (PAL: 312 lines, 63 cycles/line, 19656 cycles/frame) ----
@@ -218,6 +216,10 @@ SLOT_HUD_BAR  = SLOT_HUD0 + 3                   ;   boss health bar
 SLOT_HUD_MSG  = SLOT_HUD0 + 4                   ;   message, 4 sprites
 HUD_SLOTS     = 8
 NUM_SLOTS     = SLOT_HUD0 + HUD_SLOTS           ; 26
+ANIM_MAX      = 16          ; animated chars per level (anim.asm)
+MUX_PIN       = 4           ; the top HUD (score, lives, bar): pinned
+                            ;   entries 0-3 of the multiplexer's lists
+!if SLOT_HUD_BAR != SLOT_HUD0 + 3 | SLOT_HUD_MSG != SLOT_HUD0 + MUX_PIN { !error "the pinned HUD slots must be SLOT_HUD0..+3" }
 MUX_LIST      = 32          ; display list entries per buffer (>= NUM_SLOTS,
                             ;   a multiple of 8: entry k uses hw sprite k & 7)
 BOSS_MAX_PARTS = 6          ; a boss is up to 6 sprites (in the enemy slots)

@@ -159,36 +159,6 @@ PTR_EBULLET = SPR_PTR0 + (spr_ebullet - SPRITES) / 64
         +spr_end
 
 ; -----------------------------------------------------------------------------
-; Explosion, first shape: tight white-hot burst. Shared by enemies and the
-; player (colour COL_EXPLOSION). Centred in the 12x12 area the planes use.
-; -----------------------------------------------------------------------------
-spr_expl_a
-PTR_EXPL_A = SPR_PTR0 + (spr_expl_a - SPRITES) / 64
-        +spr_begin
-        +spr "............"     ;  0
-        +spr "............"     ;  1
-        +spr "....w..w...."     ;  2
-        +spr ".....ii....."     ;  3
-        +spr "...wiwwiw..."     ;  4
-        +spr "....iwwi...."     ;  5
-        +spr "....iwwi...."     ;  6
-        +spr "...wiwwiw..."     ;  7
-        +spr ".....ii....."     ;  8
-        +spr "....w..w...."     ;  9
-        +spr "............"     ; 10
-        +spr "............"     ; 11
-        +spr "............"     ; 12
-        +spr "............"     ; 13
-        +spr "............"     ; 14
-        +spr "............"     ; 15
-        +spr "............"     ; 16
-        +spr "............"     ; 17
-        +spr "............"     ; 18
-        +spr "............"     ; 19
-        +spr "............"     ; 20
-        +spr_end
-
-; -----------------------------------------------------------------------------
 ; Explosion, second shape: wider fireball breaking up into smoke.
 ; -----------------------------------------------------------------------------
 spr_expl_b
@@ -753,6 +723,138 @@ PTR_BOSS4_R = SPR_PTR0 + (spr_boss4_r - SPRITES) / 64
         +spr "iiiiiiiiid.."     ; 11
         +spr "iiiiiiiidd.."     ; 12
         +spr "dddddddd...."     ; 13
+        +spr "............"     ; 14
+        +spr "............"     ; 15
+        +spr "............"     ; 16
+        +spr "............"     ; 17
+        +spr "............"     ; 18
+        +spr "............"     ; 19
+        +spr "............"     ; 20
+        +spr_end
+
+; -----------------------------------------------------------------------------
+; Explosion sequence (enemies, the player, boss parts): 1 flash, 2 fireball,
+; 3 = expl_b (the big ring), 4 breaking up into smoke, 5 smoke puffs, 6 the
+; last wisps. Its 'i' colour goes yellow -> orange -> red (expl_cols in
+; src/enemies.asm). Drawn in rows 0-11, like the planes.
+; -----------------------------------------------------------------------------
+spr_expl_1
+PTR_EXPL_1 = SPR_PTR0 + (spr_expl_1 - SPRITES) / 64
+        +spr_begin
+        +spr "............"     ;  0
+        +spr "............"     ;  1
+        +spr ".....ww....."     ;  2
+        +spr "....wwww...."     ;  3
+        +spr "...wwiiww..."     ;  4
+        +spr "...wiiiiw..."     ;  5
+        +spr "...wiiiiw..."     ;  6
+        +spr "...wwiiww..."     ;  7
+        +spr "....wwww...."     ;  8
+        +spr ".....ww....."     ;  9
+        +spr "............"     ; 10
+        +spr "............"     ; 11
+        +spr "............"     ; 12
+        +spr "............"     ; 13
+        +spr "............"     ; 14
+        +spr "............"     ; 15
+        +spr "............"     ; 16
+        +spr "............"     ; 17
+        +spr "............"     ; 18
+        +spr "............"     ; 19
+        +spr "............"     ; 20
+        +spr_end
+spr_expl_2
+PTR_EXPL_2 = SPR_PTR0 + (spr_expl_2 - SPRITES) / 64
+        +spr_begin
+        +spr "............"     ;  0
+        +spr "....i..i...."     ;  1
+        +spr "...iiwwii..."     ;  2
+        +spr "..iiwwwwii.."     ;  3
+        +spr ".iiwwwwwwii."     ;  4
+        +spr "..iwwwwwwi.."     ;  5
+        +spr "..iwwwwwwi.."     ;  6
+        +spr ".iiwwwwwwii."     ;  7
+        +spr "..iiwwwwii.."     ;  8
+        +spr "...iiwwii..."     ;  9
+        +spr "....i..i...."     ; 10
+        +spr "............"     ; 11
+        +spr "............"     ; 12
+        +spr "............"     ; 13
+        +spr "............"     ; 14
+        +spr "............"     ; 15
+        +spr "............"     ; 16
+        +spr "............"     ; 17
+        +spr "............"     ; 18
+        +spr "............"     ; 19
+        +spr "............"     ; 20
+        +spr_end
+spr_expl_4
+PTR_EXPL_4 = SPR_PTR0 + (spr_expl_4 - SPRITES) / 64
+        +spr_begin
+        +spr ".d...ii...d."     ;  0
+        +spr "...ii..ii..."     ;  1
+        +spr "..i.dddd.i.."     ;  2
+        +spr ".i.dd..dd.i."     ;  3
+        +spr "i.dd.ii.dd.i"     ;  4
+        +spr ".dd.i..i.dd."     ;  5
+        +spr ".dd.i..i.dd."     ;  6
+        +spr "i.dd.ii.dd.i"     ;  7
+        +spr ".i.dd..dd.i."     ;  8
+        +spr "..i.dddd.i.."     ;  9
+        +spr "...ii..ii..."     ; 10
+        +spr ".d...ii...d."     ; 11
+        +spr "............"     ; 12
+        +spr "............"     ; 13
+        +spr "............"     ; 14
+        +spr "............"     ; 15
+        +spr "............"     ; 16
+        +spr "............"     ; 17
+        +spr "............"     ; 18
+        +spr "............"     ; 19
+        +spr "............"     ; 20
+        +spr_end
+spr_expl_5
+PTR_EXPL_5 = SPR_PTR0 + (spr_expl_5 - SPRITES) / 64
+        +spr_begin
+        +spr "..dd....dd.."     ;  0
+        +spr ".d..d..d..d."     ;  1
+        +spr ".d..d..d..d."     ;  2
+        +spr "..dd.dd.dd.."     ;  3
+        +spr "....d..d...."     ;  4
+        +spr ".dd.d..d.dd."     ;  5
+        +spr "d..d.dd.d..d"     ;  6
+        +spr "d..d....d..d"     ;  7
+        +spr ".dd..dd..dd."     ;  8
+        +spr "....d..d...."     ;  9
+        +spr "....d..d...."     ; 10
+        +spr ".....dd....."     ; 11
+        +spr "............"     ; 12
+        +spr "............"     ; 13
+        +spr "............"     ; 14
+        +spr "............"     ; 15
+        +spr "............"     ; 16
+        +spr "............"     ; 17
+        +spr "............"     ; 18
+        +spr "............"     ; 19
+        +spr "............"     ; 20
+        +spr_end
+spr_expl_6
+PTR_EXPL_6 = SPR_PTR0 + (spr_expl_6 - SPRITES) / 64
+        +spr_begin
+        +spr "............"     ;  0
+        +spr "..d......d.."     ;  1
+        +spr "............"     ;  2
+        +spr ".....d......"     ;  3
+        +spr "...d....d..."     ;  4
+        +spr "............"     ;  5
+        +spr "............"     ;  6
+        +spr "..d..d.....d"     ;  7
+        +spr "............"     ;  8
+        +spr "......d....."     ;  9
+        +spr ".d........d."     ; 10
+        +spr "............"     ; 11
+        +spr "............"     ; 12
+        +spr "............"     ; 13
         +spr "............"     ; 14
         +spr "............"     ; 15
         +spr "............"     ; 16

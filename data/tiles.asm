@@ -1,9 +1,12 @@
 ; =============================================================================
-; data/tiles.asm - fixed chars assembled straight into the charset
-; Chars 0-63 are the ROM font (copied at boot), 64-127 the current level's
-; tileset (copied at level start, see data/tiles_*.asm), and these are the
-; chars from 128 up, which never change.
+; data/tiles.asm - the title logo's chars
+; Chars 0-63 are the ROM font (copied at boot), and 64-255 the current
+; level's chars (unpacked at level start). These 16 chars are copied to
+; codes 128-143 for the title and the text screens (restore_quads), over
+; whatever the last level left there.
 ; =============================================================================
+QUAD_CHARS = 16
+quad_chars
 
 ; -----------------------------------------------------------------------------
 ; QUAD_BASE (128) .. +15: hires 2x2 "quadrant" blocks for the title logo.
@@ -18,4 +21,5 @@
                 !byte ((.q >> 1) & 1) * $f0 | (.q & 1) * $0f
         }
 }
-fixed_chars_end
+quad_chars_end
+!if quad_chars_end - quad_chars != QUAD_CHARS * 8 { !error "quad chars size" }

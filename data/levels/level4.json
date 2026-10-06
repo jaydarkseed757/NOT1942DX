@@ -1,0 +1,25 @@
+{
+ "png": "level4.png",
+ "label": "level4",
+ "bg": "dgrey",
+ "mc1": "black",
+ "mc2": "grey",
+ "boss_row": 576,
+ "anim": {
+  "png": "level4_anim.png",
+  "rows": [
+   {
+    "frames": 4,
+    "delay": 6
+   },
+   {
+    "frames": 4,
+    "delay": 5
+   },
+   {
+    "frames": 4,
+    "delay": 12
+   }
+  ]
+ }
+}

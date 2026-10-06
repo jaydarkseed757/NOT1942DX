@@ -1,0 +1,21 @@
+{
+ "png": "level2.png",
+ "label": "level2",
+ "bg": "lblue",
+ "mc1": "green",
+ "mc2": "lgreen",
+ "boss_row": 576,
+ "anim": {
+  "png": "level2_anim.png",
+  "rows": [
+   {
+    "frames": 4,
+    "delay": 7
+   },
+   {
+    "frames": 4,
+    "delay": 9
+   }
+  ]
+ }
+}

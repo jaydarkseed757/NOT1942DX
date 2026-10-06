@@ -25,10 +25,26 @@ LOGO_W = (title_logo_end - title_logo) / LOGO_H
 !if LOGO_W * LOGO_H != title_logo_end - title_logo { !error "logo rows differ in width" }
 !if LOGO_W > COLS { !error "logo is wider than the screen" }
 
-; Logo colour per screen row (top to bottom). The logo is hires, so colour
-; RAM values must be 0-7: a white-hot top fading through yellow to red.
+; "DX", in the same 2x2 block chars, under the logo. DX_H (src/title.asm)
+; must match its rows / 2.
+title_dx
+        +logo_px "#####.....##....##"
+        +logo_px "##..##.....##..##."
+        +logo_px "##...##.....####.."
+        +logo_px "##...##.....####.."
+        +logo_px "##..##.....##..##."
+        +logo_px "#####.....##....##"
+        +logo_end
+title_dx_end
+DX_W = (title_dx_end - title_dx) / DX_H
+!if DX_W * DX_H != title_dx_end - title_dx { !error "DX rows differ in width" }
+
+; Colour per screen row, top to bottom (hires, so colour RAM values 0-7):
+; the logo white-hot at the top through yellow to red, DX in cool colours.
 title_logo_cols
         !byte COL_WHITE, COL_YELLOW, COL_YELLOW, COL_RED, COL_RED
+title_dx_cols
+        !byte COL_WHITE, COL_CYAN, COL_CYAN
 
 ; Text lines (screen codes: lowercase in the source shows as capitals).
 title_by        !scr "by jdc"

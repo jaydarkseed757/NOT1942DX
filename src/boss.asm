@@ -32,6 +32,7 @@ BOSS_H          = 42            ; expanded sprite height (21 rows x 2)
 BOSS_X_MIN      = SCREEN_X_MIN  ; (the right limit, boss_xmax, is per boss)
 BOSS_FLASH      = 3             ; frames of white after each hit
 BOSS_DIE_FRAMES = 100           ; 2 s of explosions
+SHAKE_BOSS      = 70            ; frames of screen shake as it goes
 BAR_BLOCKS      = 6             ; HP bar length in the HUD
 
 boss_slot = SLOT_ENEMY0         ; the body (runs the script)
@@ -157,23 +158,26 @@ boss_update
 
 .dying  dec boss_timer
         beq .gone
-        lda boss_timer          ; flicker: explosion shapes in turn on
-        lsr                     ;   neighbouring parts, swapped every 4 frames
-        lsr
-        and #1
+        lda boss_timer          ; every part runs the explosion sequence,
+        lsr                     ;   4 frames a shape, each two shapes on
+        lsr                     ;   from its neighbour, round and round
         sta zp_tmp0
         ldx boss_parts
         dex
 -       txa
-        eor zp_tmp0
-        and #1
+        asl
+        adc zp_tmp0             ; (carry clear: small)
         tay
-        lda .expl,y
+        lda .cycle,y            ; -> shape 0-5
+        tay
+        lda expl_ptr,y
         sta spr_ptr + SLOT_ENEMY0,x
+        lda expl_col,y
+        sta spr_col + SLOT_ENEMY0,x
         dex
         bpl -
         rts
-.expl   !byte PTR_EXPL_A, PTR_EXPL_B
+.cycle  !for .i, 0, BOSS_DIE_FRAMES / 4 + 2 * BOSS_MAX_PARTS { !byte .i % EXPL_SHAPES }
 .gone   ldx boss_parts          ; boss gone: slots free and normal size again
         dex
         lda #0
@@ -266,6 +270,8 @@ boss_hit
         lda #0
         sta boss_flash
         jsr boss_colour
+        lda #SHAKE_BOSS         ; the screen shakes
+        sta shake_timer
         lda #$00                ; BOSS_SCORE = 5000 (BCD "50" in the middle)
         ldy #$50
         jsr score_add_bcd

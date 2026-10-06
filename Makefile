@@ -14,6 +14,7 @@
 #   make run-crt  build the cartridge and boot x64sc with it plugged in
 #   make release  build everything that ships: the .d64, the compressed
 #                 .prg and the .crt
+#   make gen      only build the level packs (build/gen/), for test builds
 #   make clean    remove build outputs
 #
 #   make DEBUG=1 ...   enable raster-time bars in the border
@@ -30,21 +31,34 @@ CRT  := build/not1942dx.crt
 SYM  := build/not1942dx-dev.sym
 LST  := build/not1942dx-dev.lst
 
+PYTHON ?= python3
+
 # The game's sources. src/crt.asm is the cartridge wrapper, a separate ACME
 # entry point that only the .crt depends on.
 SRC  := $(filter-out src/crt.asm,$(wildcard src/*.asm)) $(wildcard data/*.asm)
+
+# Level packs: each level's picture (data/levels/levelN.png + .json) becomes
+# build/gen/levelN.asm (tools/png2level.py, needs Python 3 with Pillow).
+LEVELS := 1 2 3 4
+GEN  := $(foreach n,$(LEVELS),build/gen/level$(n).asm)
 
 ACMEFLAGS := -f cbm --cpu 6502 -v1 -l $(SYM) -r $(LST)
 ifdef DEBUG
 ACMEFLAGS += -DDEBUG=1
 endif
 
-.PHONY: all crunch d64 crt release run run-d64 run-crt clean
+.PHONY: all gen crunch d64 crt release run run-d64 run-crt clean
 
 all: $(PRG)
 
-$(PRG): $(SRC) Makefile | build
+$(PRG): $(SRC) $(GEN) Makefile | build
 	$(ACME) $(ACMEFLAGS) -o $@ src/main.asm
+
+build/gen/level%.asm: data/levels/level%.png data/levels/level%.json tools/png2level.py tools/c64gfx.py
+	$(PYTHON) tools/png2level.py data/levels/level$*.json $@
+
+# Test builds (acme on the command line) need the packs too: make gen
+gen: $(GEN)
 
 crunch: $(CRUNCHED)
 

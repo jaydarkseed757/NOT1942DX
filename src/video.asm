@@ -59,10 +59,9 @@ init_video
         inx
         bne .clr
 
-        ; --- colour RAM: whole screen = playfield colour, then HUD row ---
-        lda pal_cram
-        and #%00000111          ; colour RAM colour must be 0-7 ...
-        ora #%00001000          ; ... with bit 3 set = multicolour char
+        ; --- colour RAM: whole screen black multicolour, then the HUD row
+        ; (play rebuilds it from CHAR_COL; static screens set their rows) ---
+        lda #%00001000
         ldx #0
 .cram   sta COLRAM+$000,x
         sta COLRAM+$100,x
@@ -100,9 +99,10 @@ video_off
 
 !zone init_char_col
 ; -----------------------------------------------------------------------------
-; init_char_col: every char's colour RAM value = the level's colour RAM
-; colour as a multicolour char. (M1: one colour for all tiles, as in NOT
-; 1942; per-char colours arrive with the new level format.) Clobbers A, X.
+; init_char_col: every char's colour RAM value to a default (black,
+; multicolour); level_unpack then fills in the level's chars. With the test
+; hook TEST_CHAR_COL every char gets (code & 7) + multicolour instead, and
+; level_unpack keeps it. Clobbers A, X.
 ; -----------------------------------------------------------------------------
 init_char_col
 !ifdef TEST_CHAR_COL {
@@ -115,9 +115,7 @@ init_char_col
         bne -
         rts
 } else {
-        lda pal_cram
-        and #%00000111
-        ora #%00001000          ; multicolour char
+        lda #%00001000          ; black, multicolour
         ldx #0
 -       sta CHAR_COL,x
         inx
@@ -133,6 +131,4 @@ set_title_palette
         sta pal_mc1
         lda #PAL_MC2
         sta pal_mc2
-        lda #PAL_CRAM
-        sta pal_cram
         rts

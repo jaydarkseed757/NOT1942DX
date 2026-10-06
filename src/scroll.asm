@@ -9,13 +9,13 @@
 ;   picture has moved a whole char row, and we show the other screen buffer,
 ;   in which everything sits one row lower, with the fine scroll back at 0:
 ;
-;       back row 0      <- new row pattern from the level stream
+;       back row 0      <- the next char row of the level map
 ;       back row r+1    <- front row r        (r = 0..23)
 ;
 ;   With yscroll 0-7 and the 24-row window, the 25 rows always cover the
 ;   whole window, so the top and bottom edges never show a gap.
 ;
-;   The hidden (back) buffer is built in 7 slices, one per frame (f = 1-7).
+;   The hidden (back) buffer is built in 6 slices, one per frame (f = 1-6).
 ;   The same slices build CRAM_SHADOW, the colour RAM the back buffer needs:
 ;   each char code has its own colour RAM value (CHAR_COL).
 ;
@@ -35,43 +35,52 @@
 ;   (chase_gen), so it costs no program space.
 ;
 ; STEP TIMELINE (8 frames; f = the yscroll shown this frame)
-;   f = 0        colour RAM rows 23-24, fetch record + spawns. No slice: on
-;                a busy screen the colour chase can spill into this frame
-;   f = 1-7      slices 0-6
-;   f = 7        also: request the flip (buffer swap + yscroll 0 at the next
-;                IRQ), then, after the frame's logic, the colour RAM chase
+;   f = 0        colour RAM rows 23-24, this step's wave (spawns), step on
+;                to the next row (next_record). No slice: on a busy screen
+;                the colour chase can spill into this frame
+;   f = 1-6      slices 0-5 (slice 0 draws row_buf as the new top row)
+;   f = 1-5      also: unpack 8 chars of the next step's row into row_buf
+;   f = 7        request the flip (buffer swap + yscroll 0 at the next IRQ),
+;                then, after the frame's logic, the colour RAM chase. No
+;                slice, so the chase can start early
 ;
-; TIMING: a slice copies 3-4 rows and builds their colours: 20 cycles per
-; char plus loop overhead, about 3400 cycles for 4 rows (2600 for 3). The
+; THE LEVEL MAP is a char map, 40 codes per row, bottom row first, LZ
+; packed (tools/png2level.py). It is unpacked a row at a time as it scrolls
+; in, through RING, a 4 KB ring buffer that holds what back-references need.
+; After the map's last row the unpacker carries on with the level's loop
+; stream (the rows from the boss row up, packed on their own), and again
+; after each pass, so the boss loop just keeps coming.
+;
+; TIMING: a slice copies 4-5 rows and builds their colours: 20 cycles per
+; char plus loop overhead, about 3400 cycles for 4 rows (4200 for 5). The
 ; colour chase copies at 8 cycles per byte (~340 per row with its wait,
 ; ~7800 in all), but it mostly fills time the frame would otherwise spend
 ; waiting for the IRQ.
 ; =============================================================================
 
 FINE_STEPS = 8                  ; frames per char row: 1 pixel per frame
-SLICES     = 7                  ; build frames per step (f = 1-7)
+SLICES     = 6                  ; build frames per step (f = 1-6)
 CHASE_LINE0 = 48 + (FINE_STEPS-1) + 1 ; first line after row 0's badline at yscroll 7
 
-; Slice row ranges (copy_ab_n / copy_ba_n): 0-3, 4-7, 8-11, 12-15, 16-18,
-; 19-21, 22-24 (the 3-row ones last: f = 7 also has the colour chase).
+; Slice row ranges (copy_ab_n / copy_ba_n): 0-3, 4-7, 8-11, 12-15, 16-19,
+; 20-24.
 !if SCROLL_ROWS != 25 { !error "the slice row ranges assume 25 scroll rows" }
 
 !zone scroll_init
 ; -----------------------------------------------------------------------------
-; scroll_init: point at the level start and draw the first SCROLL_ROWS
-; records straight into SCREEN_A, colour RAM and CRAM_SHADOW (record 0 at
-; the bottom). Runs with the display off. CHAR_COL must be set up.
-; Leaves SCREEN_A in front, yscroll 0, at the start of a step.
+; scroll_init: start the level map at row 0 and draw its first SCROLL_ROWS
+; rows straight into SCREEN_A, colour RAM and CRAM_SHADOW (row 0 at the
+; bottom). Runs with the display off; level_begin has unpacked the level
+; and set up CHAR_COL. Leaves SCREEN_A in front, yscroll 0, at the start of
+; a step.
 ; -----------------------------------------------------------------------------
 PREFILL_OFS = (SCROLL_ROWS - 1) * COLS  ; offset of the bottom row
 
 scroll_init
-        lda lvl_start           ; current level's stream (level_load)
-        sta level_ptr
-        lda lvl_start+1
-        sta level_ptr+1
         lda #0
-        sta lvl_loop+1          ; no boss loop point yet
+        sta lvl_row
+        sta lvl_row+1           ; (wave_ptr: level_load; the map stream:
+                                ;   level_unpack)
 
         ; SCREEN_A, COLRAM and CRAM_SHADOW all start on a page boundary, so
         ; one row offset serves all three: only the high bytes differ.
@@ -83,23 +92,23 @@ scroll_init
         lda #>(COLRAM + PREFILL_OFS)
         sta zp_ptr1+1
         lda #SCROLL_ROWS
-        sta zp_tmp1             ; records left
-.rec    jsr fetch_record        ; row_ptr -> this record's pattern
+        sta zp_tmp1             ; rows left
+.rec    jsr fetch_record        ; row_buf = the next row
         ldy #COLS-1
--       lda (row_ptr),y         ; screen and colour RAM
+-       lda row_buf,y           ; screen and colour RAM
         sta (zp_ptr0),y
         tax
         lda CHAR_COL,x
         sta (zp_ptr1),y
         dey
         bpl -
-        lda zp_ptr1+1           ; the same colours into CRAM_SHADOW (row 24
-        pha                     ;   is read from there at the first f = 0)
-        sec
+        lda zp_ptr1+1           ; the same colours into CRAM_SHADOW (rows
+        pha                     ;   23-24 are read from there at the first
+        sec                     ;   f = 0)
         sbc #>(COLRAM - CRAM_SHADOW)
         sta zp_ptr1+1
         ldy #COLS-1
--       lda (row_ptr),y
+-       lda row_buf,y
         tax
         lda CHAR_COL,x
         sta (zp_ptr1),y
@@ -117,6 +126,7 @@ scroll_init
         dec zp_ptr1+1
 +       dec zp_tmp1
         bne .rec
+        jsr decode_row          ; the first step's row (later f = 1-5 do it)
 
 !if (<COLRAM != <SCREEN_A) | (<CRAM_SHADOW != <SCREEN_A) { !error "prefill needs page-aligned buffers" }
 
@@ -144,15 +154,24 @@ scroll_update
         bne .slice
         ; f = 0: the IRQ just showed the new buffer
         jsr cram_late           ; its last two colour RAM rows
-        jsr fetch_record        ; read this step's level record (row_ptr:
-        jsr enemies_spawn       ;   slice 0 draws it) and launch its enemies
-        jmp .next               ;   (spawn = scroll position)
+        jsr next_record         ; this step's row (in row_buf since f = 5,
+        jsr enemies_spawn       ;   slice 0 draws it): launch its wave, if
+        jmp .next               ;   any (spawn = scroll position), step on
 
 .slice  ldx scroll_slice
         cpx #SLICES
         bcs .next
-        jsr run_slice           ; f = 1-7: build slice f - 1
+        jsr run_slice           ; f = 1-6: build slice f - 1
         inc scroll_slice
+        lda scroll_fine
+        cmp #1                  ; f = 1: slice 0 has drawn row_buf, so the
+        bne +                   ;   next row can start
+        lda #0
+        sta st_out
++       lda scroll_fine
+        cmp #6                  ; f = 1-5: 8 more of its chars
+        bcs .next
+        jsr decode_some
 
 .next   lda scroll_fine         ; next frame's yscroll
         cmp #FINE_STEPS - 1
@@ -166,7 +185,8 @@ scroll_update
 
         ; f = 7: the back buffer is complete. Swap at the next IRQ, with yscroll
         ; 0 in the same instant, and copy the colours this frame.
-.flip   lda front_buf
+.flip   jsr decode_rest         ; (normally done already)
+        lda front_buf
         eor #1
         sta front_buf
         tax
@@ -313,98 +333,194 @@ cram_late
 
 !zone fetch_record
 ; -----------------------------------------------------------------------------
-; fetch_record: read the next level stream record.
-;   out: row_ptr -> 40-byte row pattern for the new top row (from the
-;          current level's table, lvl_rowpats)
-;        rec_ptr / rec_spawns = this record and its spawn count (for
-;          enemies_spawn; the prefill ignores them)
-;        level_ptr advanced past the record
-; LVL_BOSS (+boss_here) takes no scroll step: it records the loop point, sets
-; boss_flag for level_update, and the next record is read instead.
-; LVL_END jumps back to the loop point (or the stream start if none).
-; Clobbers A, Y, zp_tmp0.
+; Row lvl_row is the next char row to scroll in; row_buf holds it once it
+; has been unpacked from the map stream (st_byte).
+;
+; fetch_record (the prefill): decode_row, then next_record.
+; next_record: row lvl_row's wave, then on to the next row.
+;   out: rec_ptr / rec_spawns = the wave and its spawn count (0 = none), for
+;          enemies_spawn (the prefill ignores them)
+;        boss_flag = 1 once the boss row has come
+;   After the picture's top row lvl_row goes back to the boss row (the map
+;   stream follows by itself).
+; Clobbers A, X, Y, zp_tmp0.
 ; -----------------------------------------------------------------------------
 fetch_record
-.again  ldy #0
-        lda (level_ptr),y
-        cmp #LVL_END
-        bne .notend
-        lda lvl_loop+1          ; end of stream: back to the boss loop point
-        beq .tostart
-        sta level_ptr+1
-        lda lvl_loop
-        sta level_ptr
-        jmp .again
-.tostart
-        lda lvl_start           ; (no boss marker: loop the whole level)
-        sta level_ptr
-        lda lvl_start+1
-        sta level_ptr+1
-        jmp .again
-.notend cmp #LVL_BOSS
-        bne .have
-        inc level_ptr           ; skip the 1-byte marker
+        jsr decode_row
+        ; (fall through)
+next_record
+        lda lvl_row             ; the boss row: the fight starts
+        cmp lvl_boss
         bne +
-        inc level_ptr+1
-+       lda level_ptr           ; the loop body starts here
-        sta lvl_loop
-        lda level_ptr+1
-        sta lvl_loop+1
+        lda lvl_row+1
+        cmp lvl_boss+1
+        bne +
         lda #1
         sta boss_flag
-        jmp .again
-
-.have   ; row_ptr = lvl_rowpats + index * 40, all in 16 bits (index 0-253)
-        sta zp_tmp0
++
+        ; --- its wave? (waves are in row order; the list ends with $FFFF) ---
         lda #0
-        sta row_ptr+1
-        lda zp_tmp0
-        asl                     ; *2
-        rol row_ptr+1
-        asl                     ; *4
-        rol row_ptr+1
-        clc
-        adc zp_tmp0             ; *5
-        bcc +
-        inc row_ptr+1
-+       asl                     ; *10
-        rol row_ptr+1
-        asl                     ; *20
-        rol row_ptr+1
-        asl                     ; *40
-        rol row_ptr+1
-        clc
-        adc lvl_rowpats
-        sta row_ptr
-        lda row_ptr+1
-        adc lvl_rowpats+1
-        sta row_ptr+1
-
-        ; remember the record for enemies_spawn
-        lda level_ptr
-        sta rec_ptr
-        lda level_ptr+1
-        sta rec_ptr+1
-
-        ; advance level_ptr by 2 + 3 * spawn_count
+        sta rec_spawns
+        ldy #0
+        lda (wave_ptr),y
+        cmp lvl_row
+        bne .step
         iny
-        lda (level_ptr),y       ; spawn count (0-3)
+        lda (wave_ptr),y
+        cmp lvl_row+1
+        bne .step
+        iny
+        lda (wave_ptr),y        ; spawn count
         sta rec_spawns
         sta zp_tmp0
-        asl                     ; *2 (carry clear: count <= 3)
-        adc zp_tmp0             ; *3
-        adc #2                  ; + header (carry still clear)
-        clc
-        adc level_ptr
-        sta level_ptr
-        bcc +
-        inc level_ptr+1
+        lda wave_ptr
+        sta rec_ptr
+        lda wave_ptr+1
+        sta rec_ptr+1
+        lda zp_tmp0             ; wave_ptr += 3 + 3 * count
+        asl
+        adc zp_tmp0             ; (count <= 8: no carry)
+        adc #WAVE_HEAD
+        adc wave_ptr
+        sta wave_ptr
+        bcc .step
+        inc wave_ptr+1
+
+.step   inc lvl_row             ; next row; past the top of the picture,
+        bne +                   ;   back to the boss row
+        inc lvl_row+1
++       lda lvl_row
+        cmp lvl_rows
+        bne +
+        lda lvl_row+1
+        cmp lvl_rows+1
+        bne +
+        lda lvl_boss
+        sta lvl_row
+        lda lvl_boss+1
+        sta lvl_row+1
 +       rts
+
+!zone decode_row
+; -----------------------------------------------------------------------------
+; decode_row: unpack a whole row into row_buf. decode_rest: the rest of it.
+; decode_some: up to 8 more of its chars. (st_out counts them.)
+; TIMING: ~45 cycles per char. Clobber A, X, Y.
+; -----------------------------------------------------------------------------
+decode_row
+        lda #0
+        sta st_out
+decode_rest
+        lda #COLS
+        bne +
+decode_some
+        lda st_out
+        clc
+        adc #8
+        cmp #COLS
+        bcc +
+        lda #COLS
++       sta st_lim
+        ldx st_out
+-       cpx st_lim
+        bcs +
+        jsr st_byte
+        sta row_buf,x
+        inx
+        bne -
++       stx st_out
+        rts
+
+!zone st_byte
+; -----------------------------------------------------------------------------
+; st_byte: the map stream's next char code -> A, also written into RING
+; (back-references copy from there). LZ format: src/unpack.asm. At the end
+; marker the stream carries on with the level's loop stream (st_loop).
+; Preserves X. Clobbers Y.
+; -----------------------------------------------------------------------------
+st_byte
+        ldy #0
+        lda st_left
+        bne .have
+.token  lda (st_src),y
+        inc st_src
+        bne +
+        inc st_src+1
++       cmp #$ff
+        bne +
+        lda st_loop             ; end of a stream: the boss loop (again)
+        sta st_src
+        lda st_loop+1
+        sta st_src+1
+        jmp .token
++       cmp #$80
+        bcs .match
+        adc #1                  ; literal run of A + 1 (carry clear)
+        sta st_left
+        lda #0
+        sta st_mode
+        beq .have               ; (always)
+.match  and #$7f
+        adc #3 - 1              ; length (carry set: + 1)
+        sta st_left
+        lda st_wp               ; st_rp = st_wp - distance, inside the ring
+        sec
+        sbc (st_src),y
+        sta st_rp
+        iny
+        lda st_wp+1
+        sbc (st_src),y
+        cmp #>RING
+        bcs +
+        adc #>RING_SIZE         ; (carry clear) wrap round the ring
++       sta st_rp+1
+        ldy #0
+        lda st_src              ; skip the 2 distance bytes
+        clc
+        adc #2
+        sta st_src
+        bcc +
+        inc st_src+1
++       lda #1
+        sta st_mode
+.have   dec st_left
+        lda st_mode
+        bne .copy
+        lda (st_src),y          ; a literal byte
+        inc st_src
+        bne .put
+        inc st_src+1
+        bne .put                ; (always)
+.copy   lda (st_rp),y           ; a byte of the match
+        inc st_rp
+        bne .put
+        inc st_rp+1
+        pha
+        lda st_rp+1
+        cmp #>(RING + RING_SIZE)
+        bne +
+        lda #>RING
+        sta st_rp+1
++       pla
+.put    sta (st_wp),y
+        inc st_wp
+        bne +
+        inc st_wp+1
+        pha
+        lda st_wp+1
+        cmp #>(RING + RING_SIZE)
+        bne ++
+        lda #>RING
+        sta st_wp+1
+++      pla
++       rts
+
+!if <RING != 0 | <RING_SIZE != 0 | RING + RING_SIZE > $10000 { !error "RING must be whole pages" }
 
 !zone run_slice
 ; -----------------------------------------------------------------------------
-; run_slice: build slice X (0-6) of the back buffer from the front buffer.
-; Dispatches to one of 14 unrolled routines (2 directions x 7 slices).
+; run_slice: build slice X (0-5) of the back buffer from the front buffer.
+; Dispatches to one of 12 unrolled routines (2 directions x 6 slices).
 ; Clobbers A, X, Y, zp_ptr0.
 ; -----------------------------------------------------------------------------
 run_slice
@@ -425,9 +541,9 @@ slice_base
 
 slice_vectors
         !word copy_ab_0, copy_ab_1, copy_ab_2, copy_ab_3   ; front = A
-        !word copy_ab_4, copy_ab_5, copy_ab_6
+        !word copy_ab_4, copy_ab_5
         !word copy_ba_0, copy_ba_1, copy_ba_2, copy_ba_3   ; front = B
-        !word copy_ba_4, copy_ba_5, copy_ba_6
+        !word copy_ba_4, copy_ba_5
 
 d018_tab
         !byte D018_A, D018_B
@@ -442,7 +558,7 @@ d018_tab
         ldy #COLS-1
 -       !for .r, .first, .last {
         !if .r = 0 {
-        lda (row_ptr),y
+        lda row_buf,y
         } else {
         lda .src + (.r-1)*COLS,y
         }
@@ -460,13 +576,11 @@ copy_ab_0       +slice SCREEN_A, SCREEN_B, 0, 3
 copy_ab_1       +slice SCREEN_A, SCREEN_B, 4, 7
 copy_ab_2       +slice SCREEN_A, SCREEN_B, 8, 11
 copy_ab_3       +slice SCREEN_A, SCREEN_B, 12, 15
-copy_ab_4       +slice SCREEN_A, SCREEN_B, 16, 18
-copy_ab_5       +slice SCREEN_A, SCREEN_B, 19, 21
-copy_ab_6       +slice SCREEN_A, SCREEN_B, 22, 24
+copy_ab_4       +slice SCREEN_A, SCREEN_B, 16, 19
+copy_ab_5       +slice SCREEN_A, SCREEN_B, 20, 24
 copy_ba_0       +slice SCREEN_B, SCREEN_A, 0, 3
 copy_ba_1       +slice SCREEN_B, SCREEN_A, 4, 7
 copy_ba_2       +slice SCREEN_B, SCREEN_A, 8, 11
 copy_ba_3       +slice SCREEN_B, SCREEN_A, 12, 15
-copy_ba_4       +slice SCREEN_B, SCREEN_A, 16, 18
-copy_ba_5       +slice SCREEN_B, SCREEN_A, 19, 21
-copy_ba_6       +slice SCREEN_B, SCREEN_A, 22, 24
+copy_ba_4       +slice SCREEN_B, SCREEN_A, 16, 19
+copy_ba_5       +slice SCREEN_B, SCREEN_A, 20, 24

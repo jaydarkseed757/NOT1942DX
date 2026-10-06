@@ -31,6 +31,7 @@ textscreen_enter
         sta flip_pending        ; no scrolling from now on
         jsr sprites_off         ; all sprites off from the next frame
         jsr video_off
+        jsr restore_quads       ; (the HUD row's boss bar uses one)
 
         lda #CHAR_BLANK
         ldx #PLAY_ROWS*COLS/4 - 1

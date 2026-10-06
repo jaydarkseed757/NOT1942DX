@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 """check_waves.py - check a level's enemy budget before running it.
 
-Reads the enemy paths from data/waves.asm and a level stream from
-data/levelN.asm, replays every path exactly like src/enemies.asm (8.8 fixed
+Reads the enemy paths from data/waves.asm and a level's waves from
+data/levelN_waves.asm, replays every path exactly like src/enemies.asm (8.8 fixed
 point, the segment timer, the off-screen removal rules), and checks that no
 spawn ever needs more than SLOTS enemy slots. Each enemy counts as alive for MARGIN
 extra frames, covering an explosion if it is shot just before it would have
 left the screen.
 
-Usage:  python3 tools/check_waves.py data/level1.asm [more levels...]
+Usage:  python3 tools/check_waves.py data/level1_waves.asm [more levels...]
 Exit status 1 if any level breaks the budget.
 
-The level file stays the source of truth; this only reads it. A DEBUG build
-(dropped-spawn digit at the right end of the HUD) remains the final check.
+The waves file stays the source of truth; this only reads it. A DEBUG build
+(spawn_drops, see CLAUDE.md) remains the final check.
 """
-import re, sys, os
+import json, re, sys, os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WAVES = os.path.join(ROOT, "data", "waves.asm")
 FRAMES_PER_ROW = 8      # FINE_STEPS in src/scroll.asm (1 pixel per frame)
-PREDRAWN = 25           # SCROLL_ROWS: records drawn instantly at level start
+PREDRAWN = 25           # SCROLL_ROWS: rows drawn instantly at level start
 SLOTS = 8               # ENEMY_COUNT (src/defs.asm)
-MARGIN = 12             # EXPL_FRAMES in src/enemies.asm
+MARGIN = 18             # EXPL_FRAMES in src/enemies.asm
 Y_END, Y_TOP, X_KILL = 247, 20, 172   # removal rules in enemies_update (PLAY_Y_END)
 
 def strip(line):
@@ -98,33 +98,34 @@ def lifetime(path_id, x):
     return 10000
 
 def check(level_file):
-    records, spawns = 0, []          # spawns: (record index, path, x, line)
-    in_stream = False
+    spawns, boss = [], None          # spawns: (row, path, x, line)
+    row = None
+    # the boss row is in the level's JSON: data/levelN_waves.asm -> data/levels/levelN.json
+    m = re.search(r"level(\d+)_waves\.asm$", level_file)
+    if m:
+        cfg = os.path.join(os.path.dirname(level_file), "levels", f"level{m.group(1)}.json")
+        if os.path.exists(cfg):
+            boss = json.load(open(cfg))["boss_row"]
     for n, raw in enumerate(open(level_file), 1):
         code = strip(raw)
-        if re.match(r"^\s+\+level_start", code):
-            in_stream = True
-            continue
-        if not in_stream:
-            continue
-        if re.match(r"^\s+\+boss_here", code):
-            break
-        if re.match(r"^\s+\+row(_spawn)?\s", code):
-            records += 1
+        m = re.match(r"^\s+\+wave\s+(\d+)", code)
+        if m:
+            row = int(m.group(1))
         m = re.match(r"^\s+\+spawn\s+(\w+),\s*(\w+),\s*(\w+)", code)
         if m:
-            spawns.append((records - 1, m.group(3), int(m.group(2), 0), n))
-    if not in_stream:
-        print(f"{level_file}: no +level_start (not a level stream), skipped")
+            spawns.append((row, m.group(3), int(m.group(2), 0), n))
+    if not spawns:
+        print(f"{level_file}: no +wave lines (not a waves file), skipped")
         return True
+    records = boss if boss is not None else spawns[-1][0] + 1
     alive, peak, ok = [], 0, True
     for rec, path, x, line in spawns:
         t = 1 + FRAMES_PER_ROW * (rec - PREDRAWN)
         alive = [d for d in alive if d >= t]
         if len(alive) >= SLOTS:
             ok = False
-            print(f"  {level_file}:{line}: row r{rec - PREDRAWN} needs enemy slot {SLOTS + 1} "
-                  f"(busy until rows {', '.join('r%.1f' % ((d - 1) / FRAMES_PER_ROW) for d in sorted(alive))})")
+            print(f"  {level_file}:{line}: row {rec} needs enemy slot {SLOTS + 1} "
+                  f"(busy until rows {', '.join('%.1f' % (PREDRAWN + (d - 1) / FRAMES_PER_ROW) for d in sorted(alive))})")
         alive.append(t + lifetime(IDS[path], x) + MARGIN)
         peak = max(peak, len(alive))
     waves = records - PREDRAWN

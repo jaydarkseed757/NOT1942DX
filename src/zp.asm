@@ -12,10 +12,11 @@ front_buf     = $06     ; 0 = SCREEN_A is front, 1 = SCREEN_B is front
                         ;   next flip if flip_pending is set)
 
 ; ---- scroller (scroll.asm) ----
-level_ptr     = $07     ; 16-bit: next record in the level stream
-row_ptr       = $09     ; 16-bit: row pattern for the step being drawn
+st_src        = $07     ; 16-bit: the map stream: next packed byte (scroll.asm)
+lvl_row       = $09     ; 16-bit: the next char row to scroll in (0 = bottom
+                        ;   of the level's picture)
 scroll_fine   = $0b     ; fine scroll (yscroll) of the frame being shown, 0-7
-scroll_slice  = $0c     ; next copy slice (0-6), 7 = all done this step
+scroll_slice  = $0c     ; next copy slice (0-5), 6 = all done this step
 
 ; ---- input (input.asm) ----
 input_bits    = $0d     ; active-high: up/down/left/right/fire (joy layout)
@@ -87,7 +88,23 @@ hud_msg_timer = $56     ; frames until the message goes (0 = it stays)
 hud_prev      = $57     ; $57-$5c: the score digits the sprites show
 hud_msg_pos   = $5d     ; message chars typed so far
 hud_msg_len   = $5e     ; ...out of this many
-; $38-$40, $5f-$84 and $89 are free
+
+; ---- the level map stream (scroll.asm) and unpacking (unpack.asm) ----
+st_loop       = $5f     ; 16-bit: the level's boss-loop stream (after the map)
+st_wp         = $61     ; 16-bit: ring write pointer (RING..RING+RING_SIZE-1)
+st_rp         = $63     ; 16-bit: ring read pointer of the match being copied
+st_left       = $65     ; bytes left in the current literal run / match
+st_mode       = $66     ; 0 = literal run, 1 = match
+lz_mp         = $67     ; 16-bit: unpack's match source
+st_out        = $69     ; chars of the next row in row_buf so far (0-40)
+st_lim        = $6a     ; decode_some: stop at this count
+mux_pin_dirty = $6b     ; mux.asm: display lists still to get new pinned entries
+mux_pin_msb   = $6c     ;   the pinned entries' $D010 bits
+mux_pin_mc    = $6d     ;   ...and $D01C bits
+shake_timer   = $6e     ; frames of screen shake left (the IRQ counts it down)
+fade_dir      = $6f     ; level.asm fades: 0 none, $FF in, 1 out
+fade_k        = $70     ;   steps darker than the palette (0 = full colour)
+; $38-$40, $71-$84 and $89 are free
 
 ; ---- player state (player.asm) ----
 player_state  = $85     ; PS_ALIVE / PS_DEAD / PS_GAMEOVER
@@ -127,15 +144,15 @@ mv_pwadd      = $bd     ; $bd-$bf pulse-width sweep per frame
 level         = $c0     ; 0-3 current level
 lvl_state     = $c1     ; LS_PLAY / LS_BOSS / LS_CLEAR / LS_NEXT
 lvl_timer     = $c2
-lvl_start     = $c3     ; 16-bit: level stream start
-lvl_loop      = $c5     ; 16-bit: record after +boss_here (hi 0 = none yet)
-lvl_rowpats   = $c7     ; 16-bit: row pattern table of this level
+lvl_rows      = $c3     ; 16-bit: char rows in this level's picture
+lvl_boss      = $c5     ; 16-bit: its boss row (the boss loop starts there)
+wave_ptr      = $c7     ; 16-bit: the next wave (data/levelN_waves.asm)
 boss_flag     = $c9     ; set by fetch_record when it passes +boss_here
 intro_timer   = $ca
 pal_bg        = $cb     ; current palette, used by init_video
 pal_mc1       = $cc
 pal_mc2       = $cd
-pal_cram      = $ce     ; colour RAM colour for pixel %11 (0-7)
+                        ; $ce is free
 
 ; ---- boss (boss.asm) ----
 boss_state    = $cf     ; BS_IDLE / BS_FIGHT / BS_DYING / BS_DONE

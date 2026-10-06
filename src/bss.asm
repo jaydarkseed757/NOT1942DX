@@ -80,6 +80,23 @@ eb_dyh      = BSS_PTR : +bss EBULLET_COUNT
 boss_pdx    = BSS_PTR : +bss BOSS_MAX_PARTS ; half-X
 boss_pdy    = BSS_PTR : +bss BOSS_MAX_PARTS ; pixels
 
+; ---- level map (scroll.asm, level.asm) ----
+row_buf     = BSS_PTR : +bss COLS       ; the char row being scrolled in
+
+; ---- animated chars (anim.asm), one byte per animation ----
+anim_count  = BSS_PTR : +bss 1
+anim_clo    = BSS_PTR : +bss ANIM_MAX   ; the char's bitmap in the charset
+anim_chi    = BSS_PTR : +bss ANIM_MAX
+anim_mode   = BSS_PTR : +bss ANIM_MAX   ; 0 = frames, 1 = scroll
+anim_delay  = BSS_PTR : +bss ANIM_MAX   ; frames between rewrites
+anim_n      = BSS_PTR : +bss ANIM_MAX   ; frame count
+anim_t      = BSS_PTR : +bss ANIM_MAX   ; frames until the next rewrite
+anim_f      = BSS_PTR : +bss ANIM_MAX   ; frame shown
+anim_bl     = BSS_PTR : +bss ANIM_MAX   ; its frames (frame 0)
+anim_bh     = BSS_PTR : +bss ANIM_MAX
+anim_pl     = BSS_PTR : +bss ANIM_MAX   ; the frame shown
+anim_ph     = BSS_PTR : +bss ANIM_MAX
+
 ; ---- generated code (scroll.asm: chase_gen) ----
 chase_code  = BSS_PTR : +bss CHASE_CODE_SIZE ; the colour RAM chase, unrolled
 

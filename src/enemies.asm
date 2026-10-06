@@ -34,7 +34,9 @@
 ; =============================================================================
 
 ENEMY_H          = 12           ; drawn rows 0-11 of the enemy sprites
-EXPL_FRAMES      = 12           ; enemy explosion: 6 frames shape A, 6 shape B
+EXPL_SHAPES      = 6            ; the explosion sequence (data/sprites.asm)
+EXPL_STEP        = 3            ; enemy explosion: frames per shape
+EXPL_FRAMES      = EXPL_SHAPES * EXPL_STEP
 ENEMY_Y_KILL_TOP = 20           ; above this = flew off the top (spawns at 30)
 ENEMY_X_KILL     = SCREEN_X_MAX ; half-X >= 172: off the right edge, or
                                 ;   wrapped below 0 off the left edge
@@ -80,8 +82,8 @@ enemies_spawn
         rts                     ; nothing to spawn on this row
 +       sta zp_tmp1             ; entries left
         clc
-        lda rec_ptr             ; entries start after the 2-byte header
-        adc #2
+        lda rec_ptr             ; entries start after the wave's header
+        adc #WAVE_HEAD
         sta zp_ptr1
         lda rec_ptr+1
         adc #0
@@ -260,12 +262,22 @@ load_seg
 enemy_explode
         lda #EXPL_FRAMES
         sta en_state_s,y
-        lda #PTR_EXPL_A
+        lda expl_ptr            ; the sequence's first shape
         sta spr_ptr,y
-        lda #COL_EXPLOSION
+        lda expl_col
         sta spr_col,y
         lda #SFX_ENEMY_BOOM
         jmp sfx_start           ; (preserves X and Y)
+
+; The explosion sequence: shapes and their 'i' colours (yellow -> orange
+; -> red, as the fire turns to smoke), shared by enemies, the player and
+; boss parts. expl_by_left: an enemy's frames left -> shape number.
+expl_ptr     !byte PTR_EXPL_1, PTR_EXPL_2, PTR_EXPL_B, PTR_EXPL_4, PTR_EXPL_5, PTR_EXPL_6
+expl_col     !byte COL_YELLOW, COL_YELLOW, COL_ORANGE, COL_RED, COL_RED, COL_RED
+expl_by_left !for .c, 0, EXPL_FRAMES {
+                !if .c = 0 { !byte EXPL_SHAPES - 1 } else { !byte (EXPL_FRAMES - .c) / EXPL_STEP }
+             }
+!if expl_col - expl_ptr != EXPL_SHAPES { !error "expl_ptr: one shape per step" }
 
 !zone enemy_step
 ; -----------------------------------------------------------------------------
@@ -378,10 +390,13 @@ enemies_update
         lda en_state_s,x
         and #EN_COUNT
         beq .exploded
-        cmp #EXPL_FRAMES / 2
-        bne .next
-        lda #PTR_EXPL_B         ; second half: bigger, smokier shape
+        tay                     ; frames left -> the sequence's shape
+        lda expl_by_left,y
+        tay
+        lda expl_ptr,y
         sta spr_ptr,x
+        lda expl_col,y
+        sta spr_col,x
         jmp .next
 
 .exploded

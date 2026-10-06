@@ -10,7 +10,8 @@
 ;
 ; ONCE PER FRAME (mux_build, at the end of the frame's logic)
 ;   1. Sort the slots by Y. mux_order is kept from frame to frame, so an
-;      insertion sort finds it nearly sorted (~35 cycles per slot).
+;      insertion sort finds it nearly sorted: one compare with the slot
+;      before (~25 cycles) for all but the few that moved.
 ;   2. Turn the sorted slots into a DISPLAY LIST. Entry k uses hardware
 ;      sprite k & 7, so entries k and k-8 share one. An entry may reuse it
 ;      only once the earlier one has finished (its last line + MUX_SETUP);
@@ -19,6 +20,11 @@
 ;      before the earlier user of their hardware sprite has finished.
 ;   3. Commit the list (mux_commit). Lists are double-buffered: the IRQs
 ;      show one while mux_build writes the other.
+;   PINNED ENTRIES: the top HUD's 4 sprites (score, lives, boss bar) never
+;   move, so they are entries 0-3 of every list, written only when one of
+;   them is switched on or off (mux_pin_dirty, set by mux_pins_changed). An
+;   off one sits at line 0, in the border. They aren't sorted: in the top
+;   band the HUD has those 4 hardware sprites anyway.
 ;
 ; THE IRQs (system.asm)
 ;   The frame IRQ (line 251) takes a committed list, writes its first 8
@@ -91,6 +97,7 @@ init_sprites
         sta SPR_MC0
         lda #SPR_SHARED2
         sta SPR_MC1
+        jsr mux_pins_changed
         ldx #NUM_SLOTS - 1      ; every slot off, normal size, multicolour,
 -       lda #$ff                ;   a valid shape
         sta spr_mc,x
@@ -112,14 +119,53 @@ init_sprites
         bpl -
         rts
 
+; mux_pins_changed: a pinned slot (SLOT_HUD0..+3) was switched on or off:
+; both display lists need their pinned entries again. Clobbers A.
+mux_pins_changed
+        lda #2
+        sta mux_pin_dirty
+        rts
+
 ; sprites_off: hide every slot from the next frame on. Clobbers A, X, Y.
 sprites_off
+        jsr mux_pins_changed
         lda #0
         ldx #NUM_SLOTS - 1
 -       sta spr_on,x
         dex
         bpl -
         jmp mux_build
+
+; +mux_entry: fill display list entry Y from slot X (A = its Y, also in
+; mux_ty). Preserves X, Y. (A macro: it runs once per sprite per frame.)
+!macro mux_entry {
+        sta l_y,y
+        lda spr_exp,x           ; end line = y + 21, or + 42 if expanded
+        and bit_of,y
+        sta l_exp,y
+        lda spr_exp,x
+        and #SPR_HEIGHT_EXP - SPR_HEIGHT
+        clc
+        adc #SPR_HEIGHT
+        adc mux_ty
+        bcc +
+        lda #$ff                ; past line 255: never reused this frame
++       sta l_end,y
+        lda spr_mc,x            ; $D01C bit: multicolour unless hires
+        and bit_of,y
+        sta l_mc,y
+        lda spr_xh,x            ; hardware X = half-X * 2, bit 8 -> $D010
+        asl
+        sta l_x,y
+        lda #0
+        bcc +
+        lda bit_of,y
++       sta l_msb,y
+        lda spr_ptr,x
+        sta l_ptr,y
+        lda spr_col,x
+        sta l_col,y
+}
 
 !zone mux_build
 ; -----------------------------------------------------------------------------
@@ -134,7 +180,8 @@ mux_build
 
         ; --- 1. sort keys: Y, or $FF for slots that aren't drawn: off, below
         ; the window, or wholly above it (in the top border, where a sprite
-        ; isn't seen but would still hold a hardware sprite)
+        ; isn't seen but would still hold a hardware sprite). The pinned
+        ; slots get $FF too: they aren't sorted
         ldx #NUM_SLOTS - 1
 .key    lda spr_on,x
         beq .off
@@ -151,14 +198,18 @@ mux_build
 .on     sta mux_key,x
         dex
         bpl .key
+        lda #$ff
+        !for .p, 0, MUX_PIN - 1 { sta mux_key + SLOT_HUD0 + .p }
 
         ; --- 2. insertion sort of mux_order by key (stable) ---
         ldx #1
-.outer  stx mux_ti
-        ldy mux_order,x         ; v = the slot to insert
+.outer  ldy mux_order,x         ; v = the slot at i
         lda mux_key,y
-        cmp #$ff                ; not drawn: >= everything, stays put
-        beq .skip
+        ldy mux_order-1,x       ; u = the slot before it
+        cmp mux_key,y
+        bcs .skip               ; key[v] >= key[u]: in place (nearly always)
+        stx mux_ti              ; out of place: insert v further down
+        ldy mux_order,x
         sty mux_tv
         sta mux_tkey
 .inner  ldy mux_order-1,x       ; u = the slot before it
@@ -172,38 +223,51 @@ mux_build
         bne .inner
 .place  lda mux_tv
         sta mux_order,x
-.skip   ldx mux_ti
-        inx
+        ldx mux_ti
+.skip   inx
         cpx #NUM_SLOTS
         bne .outer
 
         ; --- 3. the display list, in the buffer that isn't being shown ---
-        ; Entries 0-7 (the frame IRQ writes them) need no reuse check; later
-        ; ones do. Their first-8 $D010/$D017/$D01C bits are gathered as we go.
-        lda #0
-        sta mux_p_msb
-        sta mux_p_exp
-        sta mux_p_mc
+        ; Entries 0-3 are pinned (written only when they change); entries
+        ; up to 7 (the frame IRQ writes them) need no reuse check; later
+        ; ones do. The first-8 $D010/$D017/$D01C bits are gathered as we go.
         lda mux_s_base
         eor #MUX_LIST
         sta mux_p_base
         tay                     ; Y = entry k (absolute index)
+        lda mux_pin_dirty
+        beq +
+        dec mux_pin_dirty
+        jsr .pins
+        ldy mux_p_base
++       lda mux_pin_msb
+        sta mux_p_msb
+        lda mux_pin_mc
+        sta mux_p_mc
+        lda #0
+        sta mux_p_exp
+        tya
         clc
         adc #8
         sta mux_te              ; (first the end of entries 0-7)
+        tya
+        adc #MUX_PIN            ; (carry clear) the sorted entries start here
+        tay
         ldx #0
         stx mux_ti
 .first  ldx mux_ti
         cpx #NUM_SLOTS
-        beq .listed
+        beq .last
         inc mux_ti
         lda mux_order,x
         tax                     ; X = the slot
         lda mux_key,x
         cmp #$ff
-        beq .listed             ; sorted: no more slots are drawn
-        sta mux_ty
-        jsr .entry
+        bne +
+.last   jmp .listed             ; sorted: no more slots are drawn
++       sta mux_ty
+        +mux_entry
         lda mux_p_msb
         ora l_msb,y
         sta mux_p_msb
@@ -242,12 +306,12 @@ mux_build
         bcs ++
 +       lda mux_te
 ++      sta l_line,y
-        jsr .entry
+        lda mux_ty
+        +mux_entry
         iny
-        bne .slot               ; (always)
+        jmp .slot
 .drop   inc mux_drops
-        bne .slot               ; (practically always; a wrap just counts 0)
-        beq .slot
+        jmp .slot
 
 .listed sty mux_p_end
         tya                     ; $D015 for the first 8 entries
@@ -263,37 +327,38 @@ mux_build
         sta mux_commit          ; the next frame IRQ takes it
         rts
 
-; .entry: fill entry Y from slot X (Y = mux_ty). Preserves X, Y.
-.entry  lda mux_ty
-        sta l_y,y
-        lda spr_exp,x           ; end line = y + 21, or + 42 if expanded
-        and bit_of,y
-        sta l_exp,y
-        lda spr_exp,x
-        and #SPR_HEIGHT_EXP - SPR_HEIGHT
-        clc
-        adc #SPR_HEIGHT
-        adc mux_ty
-        bcc +
-        lda #$ff                ; past line 255: never reused this frame
-+       sta l_end,y
-        lda spr_mc,x            ; $D01C bit: multicolour unless hires
-        and bit_of,y
-        sta l_mc,y
-        lda spr_xh,x            ; hardware X = half-X * 2, bit 8 -> $D010
-        asl
-        sta l_x,y
-        lda #0
-        bcc +
-        lda bit_of,y
-+       sta l_msb,y
-        lda spr_ptr,x
-        sta l_ptr,y
-        lda spr_col,x
-        sta l_col,y
-        rts
-
 .enable !byte $00, $01, $03, $07, $0f, $1f, $3f, $7f, $ff
+
+; .pins: the pinned entries 0-3 of the list at Y from the pinned slots, and
+; their $D010 / $D01C bits. Clobbers A, X, Y.
+.pins   lda #0
+        sta mux_pin_msb
+        sta mux_pin_mc
+        ldx #SLOT_HUD0
+-       lda spr_on,x
+        beq .pinoff
+        lda spr_y,x
+        sta mux_ty
+        +mux_entry
+        jmp +
+.pinoff lda #0                  ; off: at line 0 (in the border), ends at
+        sta l_y,y               ;   once, no $D010 / $D01C bits
+        sta l_end,y
+        sta l_exp,y
+        sta l_mc,y
+        sta l_msb,y
+        sta l_x,y
++       lda mux_pin_msb
+        ora l_msb,y
+        sta mux_pin_msb
+        lda mux_pin_mc
+        ora l_mc,y
+        sta mux_pin_mc
+        iny
+        inx
+        cpx #SLOT_HUD0 + MUX_PIN
+        bne -
+        rts
 
 ; -----------------------------------------------------------------------------
 ; +mux_write : write display list entry Y to its hardware sprite (k & 7).
