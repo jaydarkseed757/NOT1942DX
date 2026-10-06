@@ -223,8 +223,11 @@ code_end
 !zone data
 * = SPRITES                     ; sprite shapes
 !source "data/sprites.asm"
+!source "src/ending_fx.asm"     ; the ending's show (fireworks, stars, P-38s):
+                                ;   code, in the spare sprite space (the code
+fx_end                          ;   area below $4000 is full in the turbo build)
 !if * > SPRITES_END {
-        !error "sprites overflow into DATA3 (64 shapes at most)"
+        !error "sprites (+ ending_fx.asm) overflow into DATA3"
 }
 
 * = DATA3_BASE                  ; data that doesn't grow: music, title, ending

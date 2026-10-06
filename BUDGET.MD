@@ -15,9 +15,9 @@ The table shows the worst frame in each part of the game, counted from the start
 | Level 2 | 16,648 | 85% | 15,926 | 15,967 | 16,063 | 6,588 |
 | Level 3 | 17,871 | 91% | 17,177 | 14,874 | 14,724 | 5,995 |
 | Level 4 | 17,944 | 91% | 17,804 | 17,845 | 16,698 | 7,080 |
-| Victory screen | 1,869 | 10% | | 1,977 | 1,986 | 1,382 |
-| Credits roll | 5,992 | 30% | | 6,143 | 6,145 | 5,314 |
-| Finale scroller | 11,721 | 60% | | 11,840 | 11,847 | 10,956 |
+| Victory screen (with the fireworks) | 6,375 | 32% | | 1,977 | 1,986 | 1,382 |
+| Credits roll (with the escort) | 9,499 | 48% | | 6,143 | 6,145 | 5,314 |
+| Finale scroller (with the fireworks) | 15,452 | 79% | | 11,840 | 11,847 | 10,956 |
 
 Since M6 the profile counts the player's collision checks (`INVINCIBLE` now only skips the dying), which is most of level 4's rise; the M5 figures left them out.
 
@@ -42,7 +42,7 @@ With M12's extras (119-140 enemies a level, at most 7 alive; boss sweeps and bur
 |---|---:|---:|---:|
 | Zero page `$02-$FF` | 254 B | see `src/zp.asm` | **~42 B** (`$38-$40`, `$71-$84`, `$89`, `$CE`, `$FD-$FF`) |
 | Code `$0810-$3FFF` | 14.3 KB | 12.4 KB (`code_end` = `$385F`) | **1.9 KB** |
-| Sprite shapes `$5000-$5FFF` | 64 shapes | 39 (31 + 8 for the HUD; `sprites_end` = `$59C0`) | **25 shapes** |
+| Sprite shapes `$5000-$5FFF` | 64 shapes | 39 (31 + 8 for the HUD; `sprites_end` = `$59C0`), then the ending's show code (`src/ending_fx.asm`, 777 B, to `fx_end` = `$5CC9`) | **~12 shapes** |
 | DATA3 `$6000-$6FFF` (VIC bank RAM the VIC never shows): music, effects, title, the ending's text, aim tables | 4 KB | to `$6ECB` (`data3_end`) | **0.3 KB** (only data that doesn't grow goes here) |
 | Map ring `$7000-$7FFF` | 4 KB | the level map's last 4 KB, unpacked at run time | (fixed) |
 | DATA2 `$8000-$CFFF`: waves, bosses, level packs | 20 KB | to `$CB34` (`data2_end`) | **1.2 KB** |

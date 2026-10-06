@@ -38,9 +38,19 @@ victory_enter
 }
         jsr hud_clear_mid       ; no "level clear" left in the HUD
         jsr textscreen_enter
+        lda #COL_BLACK          ; a night sky: black, hires text
+        sta BORDER
+        sta BGCOL0
+        lda #%00001000
+        sta VIC_CTRL2
         +print_both TXT_ROW_A, (COLS - .title_len) / 2, .title, .title_len
         +print_both TXT_ROW_B, (COLS - .sub_len) / 2, .sub, .sub_len
         jsr print_final_score
+        jsr fx_init             ; fireworks, stars, and a victory pass
+        lda #<fx_victory_rows   ;   (ending_fx.asm)
+        ldx #>fx_victory_rows
+        jsr fx_stars
+        jsr fx_ship_start
         lda #VICTORY_FRAMES
         sta end_timer
         lda #GM_VICTORY
@@ -56,6 +66,9 @@ victory_enter
 
 ; victory_update: hold the victory screen, then start the credits roll.
 victory_update
+        jsr fx_ship
+        jsr fx_fireworks        ; (and mux_build)
+        jsr fx_twinkle
         dec end_timer
         bne +
         jmp roll_enter
@@ -120,6 +133,8 @@ roll_enter
         tax
         dex
         bpl -
+        jsr fx_init             ; the star chars; six P-38s escort the text
+        jsr fx_escort_start
         lda #<credits
         sta roll_ptr
         lda #>credits
@@ -171,6 +186,7 @@ roll_colours
 ; TIMING: ~4000 cycles on copy frames, otherwise tiny.
 ; -----------------------------------------------------------------------------
 roll_update
+        jsr fx_escort           ; the P-38s (and mux_build)
         lda roll_k              ; fine scroll = 7 - roll_k / 2
         lsr
         eor #%00000111
@@ -281,7 +297,10 @@ roll_new_line
         cmp #CREDIT_LINES
         bcs .blank
 -       lda (roll_ptr),y
-        sta (zp_ptr1),y
+        cmp #CHAR_BLANK
+        bne +
+        jsr fx_roll_cell        ; blank: maybe a star
++       sta (zp_ptr1),y
         dey
         bpl -
         clc
@@ -292,8 +311,9 @@ roll_new_line
         inc roll_ptr+1
 +       inc roll_line
         rts
-.blank  lda #CHAR_BLANK
--       sta (zp_ptr1),y
+.blank
+-       jsr fx_roll_cell        ; blank, with stars
+        sta (zp_ptr1),y
         dey
         bpl -
         inc roll_line
@@ -347,6 +367,10 @@ finale_enter
         jsr scroll_next_char
         lda #GO_DELAY
         sta end_timer
+        jsr fx_init             ; fireworks and stars (ending_fx.asm)
+        lda #<fx_finale_rows
+        ldx #>fx_finale_rows
+        jsr fx_stars
         lda #GM_FINALE
         sta game_mode
         lda #FINALE_D011
@@ -362,6 +386,8 @@ finale_enter
 ; TIMING: ~8500 cycles (two 1-pixel shifts of the 640-byte strip).
 ; -----------------------------------------------------------------------------
 finale_update
+        jsr fx_fireworks        ; (and mux_build)
+        jsr fx_twinkle
         jsr scroll_shift
         jsr scroll_shift
         inc col_phase           ; rainbow ripples to the left

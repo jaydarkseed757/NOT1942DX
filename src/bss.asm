@@ -100,6 +100,16 @@ anim_ph     = BSS_PTR : +bss ANIM_MAX
 ; ---- generated code (scroll.asm: chase_gen) ----
 chase_code  = BSS_PTR : +bss CHASE_CODE_SIZE ; the colour RAM chase, unrolled
 
+; the ending's show (ending_fx.asm): fireworks in the enemy slots, stars
+fw_state    = BSS_PTR : +bss ENEMY_COUNT   ; 0 idle, 1 climbing, 2 bursting
+fw_top      = BSS_PTR : +bss ENEMY_COUNT   ; the line it bursts at
+fw_col      = BSS_PTR : +bss ENEMY_COUNT   ; its colour
+fw_timer    = BSS_PTR : +bss ENEMY_COUNT   ; frames of burst left
+FX_STARS    = 24                           ; = STARS (checked there)
+fx_star_lo  = BSS_PTR : +bss FX_STARS      ; a star's screen offset
+fx_star_hi  = BSS_PTR : +bss FX_STARS
+fx_star_ph  = BSS_PTR : +bss FX_STARS      ; its twinkle phase
+
 !ifdef TURBO {                  ; the turbo build's parallax cloud (parallax.asm):
 PARA_SAVE   = 24                    ; = PARA_CELLS (checked there)
 para_idx_lo = BSS_PTR : +bss PARA_SAVE  ; the cells drawn: screen offset 0-999,

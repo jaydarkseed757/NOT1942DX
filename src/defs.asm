@@ -27,7 +27,10 @@
 ;                  chars 128-143 : on the title and text screens, the logo's
 ;                                  2x2 block quadrants (restore_quads)
 ;                  chars 144-223 : in the ending, its big scroller strip
-;   $5000-$5FFF  SPRITES   - 64 sprite shapes x 64 bytes (pointers $40-$7F)
+;   $5000-$5FFF  SPRITES   - 64 sprite shapes x 64 bytes (pointers $40-$7F);
+;                            after the shapes, ending_fx.asm's code (the
+;                            ending's show; fx_end), in shape space no
+;                            sprite uses
 ;   $6000-$6FFF  DATA3     - music, songs, sound effects, title screen data,
 ;                            the ending's text, the aiming tables: data that
 ;                            doesn't grow (the VIC never looks there)

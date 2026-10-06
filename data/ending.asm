@@ -29,5 +29,5 @@ CREDIT_LINES = (credits_end - credits) / COLS
 ; the end separate one pass from the next. Ends with SCROLL_END.
 ; -----------------------------------------------------------------------------
 scroll_text
-        !scr "not 1942 by jdc        "
+        !scr "not 1942 dx by jdc        "
         !byte SCROLL_END
