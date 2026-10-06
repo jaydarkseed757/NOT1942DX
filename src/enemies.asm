@@ -33,7 +33,8 @@
 ; offset by -SLOT_ENEMY0 so they can be indexed directly by the sprite slot.
 ; =============================================================================
 
-ENEMY_H          = 12           ; drawn rows 0-11 of the enemy sprites
+ENEMY_H          = 15           ; drawn rows 0-14 of the fighter and leader
+                                ;   (the other planes: 0-11)
 EXPL_SHAPES      = 6            ; the explosion sequence (data/sprites.asm)
 EXPL_STEP        = 3            ; enemy explosion: frames per shape
 EXPL_FRAMES      = EXPL_SHAPES * EXPL_STEP

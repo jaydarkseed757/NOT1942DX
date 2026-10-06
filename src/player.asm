@@ -19,14 +19,14 @@ player_xh = spr_xh + SLOT_PLAYER
 player_y  = spr_y  + SLOT_PLAYER
 
 PLAYER_W      = 12              ; width in half-X units (24 screen pixels)
-PLAYER_H      = 14              ; drawn rows 0-13 of the sprite
+PLAYER_H      = 17              ; drawn rows 0-16 of the sprite
 PLAYER_SPEED_X = 1              ; half-X units/frame = 2 pixels/frame
 PLAYER_SPEED_Y = 2              ; pixels/frame
 
 ; Clamp bounds: keep the whole ship inside the playfield window.
 PLAYER_X_MIN  = SCREEN_X_MIN
 PLAYER_X_MAX  = SCREEN_X_MAX - PLAYER_W
-PLAYER_Y_MIN  = PLAY_Y_MIN - 1  ; sprite row 0 is blank, so the nose sits on row 1
+PLAYER_Y_MIN  = PLAY_Y_MIN      ; (the propellers are on sprite row 0)
 PLAYER_Y_MAX  = PLAY_Y_END - PLAYER_H
 
 PLAYER_START_X = (SCREEN_X_MIN + SCREEN_X_MAX - PLAYER_W) / 2

@@ -74,53 +74,87 @@ collide_enemy_boxes
         bpl -
         rts
 
-; collide_boss_boxes: the boss parts (the first boss_parts enemy slots) get
-; boxes the size of an expanded sprite. Clobbers A, X.
-collide_boss_boxes
-        ldx boss_parts
-        dex
--       lda #0
-        sta box_ox + SLOT_ENEMY0,x
-        sta box_oy + SLOT_ENEMY0,x
-        lda #BOSS_PART_W
-        sta box_w + SLOT_ENEMY0,x
-        lda #BOSS_H
-        sta box_h + SLOT_ENEMY0,x
-        dex
-        bpl -
-        rts
-
 ; Boxes in half-X (X) and pixels (Y), from the sprite's top-left.
 PLAYER_BOX_OX = 3               ; art cols 3-8, rows 2-11: fuselage, engines
-PLAYER_BOX_OY = 2               ;   and wing roots (24x14 art; see sprites)
+PLAYER_BOX_OY = 2               ;   and wing roots (24x17 art; see sprites)
 PLAYER_BOX_W  = 6
 PLAYER_BOX_H  = 10
 PB_BOX_OX     = 4               ; the twin streaks, cols 4-7
 PB_BOX_W      = 4
 EB_BOX_OX     = 4               ; the round shot, cols 4-7
 EB_BOX_W      = 4
-ENEMY_BOX_OX  = 1               ; planes: cols 1-10, rows 0-11
+ENEMY_BOX_OX  = 1               ; planes: cols 1-10, rows 0-14 (ENEMY_H)
 ENEMY_BOX_W   = 10
+
+; +y_apart LABEL: go to LABEL if the boxes of slots X and Y can't meet
+; vertically; zp_tmp1 = the top of X's box. The same test as boxes_overlap.
+!macro y_apart .far {
+        lda spr_y,y
+        clc
+        adc box_oy,y            ; b = top of Y's box
+        sec
+        sbc zp_tmp1             ; b - a
+        bcs .below
+        eor #$ff                ; a - b (carry is clear)
+        adc #1
+        cmp box_h,y
+        bcs .far
+        bcc .near
+.below  cmp box_h,x
+        bcs .far
+.near
+}
+
+; +x_apart LABEL: the same across, with zp_tmp0 = the left of X's box.
+!macro x_apart .far {
+        lda spr_xh,y
+        clc
+        adc box_ox,y            ; b = left of Y's box
+        sec
+        sbc zp_tmp0             ; b - a
+        bcs .right
+        eor #$ff                ; a - b (carry is clear)
+        adc #1
+        cmp box_w,y
+        bcs .far
+        bcc .near
+.right  cmp box_w,x
+        bcs .far
+.near
+}
 
 !zone collisions
 ; -----------------------------------------------------------------------------
-; collisions: once per frame, after all movement. Clobbers A, X, Y, zp_tmp0.
+; collisions: once per frame, after all movement. Clobbers A, X, Y, zp_tmp0,
+; zp_tmp1.
+; TIMING: the inner loops test the boxes themselves, against the bullet's
+; (or the player's) box top and left, worked out once in zp_tmp1 / zp_tmp0:
+; ~35 cycles for a pair apart vertically, ~70 for one that isn't.
 ; -----------------------------------------------------------------------------
 collisions
         ; --- player bullets vs enemies ---
         lda boss_state          ; a dying boss can't be hit any more
         cmp #BS_DYING
-        beq .player
-        ldx #SLOT_PBULLET0
+        bne +
+        jmp .player
++       ldx #SLOT_PBULLET0
 .pb     lda spr_on,x
         beq .pbnext
+        lda spr_y,x
+        clc
+        adc box_oy,x
+        sta zp_tmp1             ; the bullet's box top
+        lda spr_xh,x
+        clc
+        adc box_ox,x
+        sta zp_tmp0             ; ... and left
         ldy #SLOT_ENEMY0
 .en     lda spr_on,y
         beq .ennext
         lda en_state_s,y        ; exploding or a medal: bullets pass through
         bne .ennext
-        jsr boxes_overlap
-        bcc .ennext
+        +y_apart .ennext
+        +x_apart .ennext
         lda #0                  ; hit: bullet gone
         sta spr_on,x
         lda boss_state
@@ -140,16 +174,23 @@ collisions
 
         ; --- player vs enemies and enemy bullets ---
 .player
-!ifdef INVINCIBLE {
-        rts                     ; test hook (acme -DINVINCIBLE): never hit
-}
         lda player_state
         cmp #PS_ALIVE
-        bne .done
+        bne .none
         lda invuln_timer        ; design rule: no player check while the
-        bne .done               ;   invulnerability timer runs
+        beq +                   ;   invulnerability timer runs
+.none   rts
++
         ldx #SLOT_PLAYER
         ldy #SLOT_ENEMY0        ; enemies, then enemy bullets (they follow)
+.pltop  lda spr_y + SLOT_PLAYER
+        clc
+        adc box_oy + SLOT_PLAYER
+        sta zp_tmp1             ; the player's box top
+        lda spr_xh + SLOT_PLAYER
+        clc
+        adc box_ox + SLOT_PLAYER
+        sta zp_tmp0             ; ... and left
 .pl     lda spr_on,y
         beq .plnext
         cpy #SLOT_EBULLET0
@@ -160,8 +201,11 @@ collisions
         lda en_state_s,y
         bmi .medal              ; a medal: collect it
         bne .plnext             ; an exploding enemy is harmless
-+       jsr boxes_overlap
-        bcc .plnext
++       +y_apart .plnext
+        +x_apart .plnext
+!ifdef INVINCIBLE {
+        jmp .plnext             ; test hook (acme -DINVINCIBLE): never hit,
+}                               ;   but the tests run (the profiler sees them)
         cpy #SLOT_EBULLET0      ; hit by...
         bcs .shot
         lda boss_state          ;   the boss: only the player dies
@@ -179,7 +223,13 @@ collisions
 .medal  jsr boxes_overlap       ; touching a medal collects it
         bcc .plnext
         jsr medal_collect
-        jmp .plnext
+        ldx #SLOT_PLAYER        ; (it may clobber them)
+        iny
+        cpy #SLOT_EBULLET0 + EBULLET_COUNT
+        beq +
+        jmp .pltop              ; (and zp_tmp0 / zp_tmp1)
++       rts
+
 
 !if SLOT_EBULLET0 != SLOT_ENEMY0 + ENEMY_COUNT {
         !error "collisions: enemy bullets must follow the enemies"

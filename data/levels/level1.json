@@ -3,7 +3,7 @@
  "label": "level1",
  "bg": "blue",
  "mc1": "lgreen",
- "mc2": "brown",
+ "mc2": "yellow",
  "boss_row": 576,
  "anim": {
   "png": "level1_anim.png",
@@ -14,23 +14,55 @@
    },
    {
     "frames": 4,
-    "delay": 10
+    "delay": 13
    },
    {
     "frames": 4,
-    "delay": 6
+    "delay": 7
    },
    {
     "frames": 4,
-    "delay": 6
+    "delay": 7
    },
    {
-    "frames": 2,
-    "delay": 9
+    "frames": 4,
+    "delay": 7
    },
    {
-    "frames": 2,
-    "delay": 9
+    "frames": 4,
+    "delay": 7
+   },
+   {
+    "frames": 4,
+    "delay": 7
+   },
+   {
+    "frames": 4,
+    "delay": 7
+   },
+   {
+    "frames": 4,
+    "delay": 7
+   },
+   {
+    "frames": 4,
+    "delay": 7
+   },
+   {
+    "frames": 4,
+    "delay": 7
+   },
+   {
+    "frames": 4,
+    "delay": 7
+   },
+   {
+    "frames": 4,
+    "delay": 7
+   },
+   {
+    "frames": 4,
+    "delay": 7
    }
   ]
  }

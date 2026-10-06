@@ -41,7 +41,8 @@ HUD_MSG_CLEAR = 2
 ; 65), freeing the hardware sprites for whatever comes next.
 HUD_GLYPH_ROW = 13
 HUD_Y         = PLAY_Y_MIN + 2 - HUD_GLYPH_ROW
-HUD_MSG_Y     = 128             ; message: glyphs in rows 0-7
+HUD_MSG_Y     = 150             ; message: glyphs in rows 0-7 (below the boss:
+                                ;   boss 1 parked at Y 50 ends at line 134)
 HUD_MSG_MAX   = 12              ; chars (3 per sprite, 4 sprites)
 HUD_BOSS_FRAMES = 100           ; "BOSS!" shows for 2 s
 PTR_HUD_SCORE = PTR_HUD
@@ -280,7 +281,9 @@ hud_update
         jmp .type
 +       lsr hud_dirty           ; HUD_D_SCORE
         bcc .lives
-        ; --- score: 6 digits, 3 per sprite; only the ones that changed ---
+        ; --- score: 6 digits, 3 per sprite; only the ones that changed, and
+        ; TIMING: at most one a frame (~360 cycles each): a roll-over like
+        ; 990 -> 1000 catches up over the next frames ---
         lda #<(SHAPE_ADDR + 0*64 + HUD_GLYPH_ROW*3)
         sta zp_ptr0
         lda #>(SHAPE_ADDR + 0*64 + HUD_GLYPH_ROW*3)
@@ -294,11 +297,10 @@ hud_update
         cmp hud_prev,x
         beq +
         sta hud_prev,x
-        txa
-        pha
         jsr hud_text_at
-        pla
-        tax
+        lda #HUD_D_SCORE        ; look again next frame: more may differ
+        sta hud_more
+        bne .lives              ; (always)
 +       dex
         bpl -
 
@@ -419,8 +421,10 @@ hud_update
         sta hud_msg_pos
         lda hud_n
         sta hud_msg_len
-.done   lda #0
+.done   lda hud_more        ; (the score digits still to draw, if any)
         sta hud_dirty
+        lda #0
+        sta hud_more
 
 .type   lda hud_msg_pos         ; message chars still to type?
         cmp hud_msg_len
@@ -452,6 +456,7 @@ hud_update
         bpl -
 .out    rts
 
+hud_more !byte 0               ; HUD_D_SCORE: score digits left for next frame
 .ship   !byte %00011000         ; a mini twin-boom fighter, nose up
         !byte %00011000
         !byte %10111101

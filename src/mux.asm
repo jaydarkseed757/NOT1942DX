@@ -22,7 +22,9 @@
 ;      show one while mux_build writes the other.
 ;   PINNED ENTRIES: the top HUD's 4 sprites (score, lives, boss bar) never
 ;   move, so they are entries 0-3 of every list, written only when one of
-;   them is switched on or off (mux_pin_dirty, set by mux_pins_changed). An
+;   them is switched on or off (mux_pin_dirty: one bit per list, set by
+;   mux_pins_changed, cleared as that list gets them: mux_build may run
+;   twice into the same list before the IRQ takes it, at level start). An
 ;   off one sits at line 0, in the border. They aren't sorted: in the top
 ;   band the HUD has those 4 hardware sprites anyway.
 ;
@@ -122,7 +124,7 @@ init_sprites
 ; mux_pins_changed: a pinned slot (SLOT_HUD0..+3) was switched on or off:
 ; both display lists need their pinned entries again. Clobbers A.
 mux_pins_changed
-        lda #2
+        lda #3                  ; bit 0: the list at 0, bit 1: at MUX_LIST
         sta mux_pin_dirty
         rts
 
@@ -236,9 +238,14 @@ mux_build
         eor #MUX_LIST
         sta mux_p_base
         tay                     ; Y = entry k (absolute index)
-        lda mux_pin_dirty
-        beq +
-        dec mux_pin_dirty
+        beq +                   ; this list's bit in mux_pin_dirty
+        lda #2
+        bne ++
++       lda #1
+++      and mux_pin_dirty
+        beq +                   ; its pinned entries are up to date
+        eor mux_pin_dirty       ; (clear its bit)
+        sta mux_pin_dirty
         jsr .pins
         ldy mux_p_base
 +       lda mux_pin_msb

@@ -199,7 +199,6 @@ debug_hex
 !source "src/anim.asm"
 !source "src/ending.asm"
 
-!source "data/ending.asm"       ; ending text (small; lives with the code)
 code_end
 !if code_end > VIC_BASE {
         !error "code overflows into VIC bank 1 ($4000)"
@@ -227,6 +226,8 @@ code_end
 !source "data/songs.asm"
 !source "data/sfx.asm"
 !source "data/title.asm"
+!source "data/ending.asm"       ; the ending's text
+!source "data/aim.asm"          ; the enemy shots' aiming table
 !source "data/tiles.asm"        ; the title logo's quadrant chars (a copy)
 !source "data/waves.asm"        ; enemy types + paths (levels refer to them)
 !source "data/bosses.asm"

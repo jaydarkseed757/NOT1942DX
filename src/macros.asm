@@ -61,14 +61,24 @@ MAX_SPAWNS_PER_ROW = ENEMY_COUNT
 ; -----------------------------------------------------------------------------
 ; Boss part lists (data/bosses.asm)
 ;   +boss_parts N                 count byte (1..BOSS_MAX_PARTS)
-;   +boss_part SHAPE, DX, DY      one expanded sprite at (DX, DY) from part 0
+;   +boss_part SHAPE, DX, DY      one expanded sprite at (DX, DY) from part 0,
+;                                 hit anywhere in its 48x42 px
+;   +boss_part_box SHAPE, DX, DY, OX, OY, W, H
+;                                 the same, hit only in the box at (OX, OY)
+;                                 from its top-left, W x H (half-X, pixels)
 ; -----------------------------------------------------------------------------
 !macro boss_parts .n {
         !if (.n < 1) | (.n > BOSS_MAX_PARTS) { !error "+boss_parts: 1 to BOSS_MAX_PARTS parts" }
         !byte .n
 }
 !macro boss_part .ptr, .dx, .dy {
-        !byte .ptr, .dx, .dy
+        +boss_part_box .ptr, .dx, .dy, 0, 0, 24, 42
+}
+!macro boss_part_box .ptr, .dx, .dy, .ox, .oy, .w, .h {
+        !if (.ox + .w > 24) | (.oy + .h > 42) | (.w < 1) | (.h < 1) {
+                !error "+boss_part_box: the box must lie inside the 24 x 42 sprite"
+        }
+        !byte .ptr, .dx, .dy, .ox, .oy, .w, .h
 }
 
 ; -----------------------------------------------------------------------------

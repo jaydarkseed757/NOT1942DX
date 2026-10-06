@@ -6,7 +6,8 @@
 ;        expanded sprite (48x42 px) at an offset from the first part, the
 ;        "body". Parts live in the first boss_parts enemy slots. The body
 ;        flies the script; the others follow it every frame (boss_follow).
-;        Today's bosses are 3 parts side by side, 144x42 px.
+;        Each part has a hit box (the whole sprite, or a smaller box for a
+;        part that is mostly empty), copied into box_* at boss_start.
 ; MOVES  A boss script is an enemy path (data/bosses.asm): +path_start, +seg,
 ;        +boss_fire / +boss_spread (guns), +seg_loop. It runs on slot 3 with
 ;        the normal path engine (enemy_step), but without the off-screen
@@ -88,6 +89,18 @@ boss_start
         iny
         lda (zp_ptr1),y
         sta boss_pdy,x
+        iny                     ; its hit box
+        lda (zp_ptr1),y
+        sta box_ox + SLOT_ENEMY0,x
+        iny
+        lda (zp_ptr1),y
+        sta box_oy + SLOT_ENEMY0,x
+        iny
+        lda (zp_ptr1),y
+        sta box_w + SLOT_ENEMY0,x
+        iny
+        lda (zp_ptr1),y
+        sta box_h + SLOT_ENEMY0,x
         lda #$ff
         sta spr_on + SLOT_ENEMY0,x
         sta spr_exp + SLOT_ENEMY0,x
@@ -100,7 +113,6 @@ boss_start
         bne -
         jsr boss_colour
         jsr boss_follow
-        jsr collide_boss_boxes
         lda #BS_FIGHT
         sta boss_state
         jsr hud_draw_boss_hp
@@ -272,6 +284,8 @@ boss_hit
         jsr boss_colour
         lda #SHAKE_BOSS         ; the screen shakes
         sta shake_timer
+        jsr init_ebullets       ; its shots vanish: no death after the win,
+                                ;   and fewer sprites while it explodes
         lda #$00                ; BOSS_SCORE = 5000 (BCD "50" in the middle)
         ldy #$50
         jsr score_add_bcd

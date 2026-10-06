@@ -92,6 +92,8 @@ M6-M9 cover levels 1-4, one per milestone:
 - an upgraded boss for each level
 - waves re-tuned for the higher enemy cap, still deterministic
 
+**M6 (level 1, done):** the art is drawn by `tools/art/level1_art.py` (islands with surf and palms, a wave texture, 16 clouds over open sea; 89 chars, 4.8 KB packed). The player, fighter and leader are redrawn (the enemies are 15 rows now, `ENEMY_H`). Boss 1 "Thunder" is a 144x84 bomber of 4 expanded sprites with per-part hit boxes (`+boss_part_box`). The waves fly NOT 1942's moves as formations: 89 enemies, at most 6 alive. Paying for it: one score digit redrawn a frame, inline collision tests, and enemy shots cleared when a boss dies. Learned: each sprite costs ~300 cycles a frame, a 6-sprite boss overran, and planes in a line abreast drop sprites; see `BUDGET.MD`.
+
 Level 4's "Kraken" can be a character-based battleship that scrolls in with the background. Music, SFX and the ending text are reused (the ending text changes only on request).
 
 M10 is balancing and release: `.d64`, a compressed `.prg` and a `.crt`. The cartridge outgrows ACME's 64 KB limit, so a Python CRT packer builds a larger Magic Desk or EasyFlash image. Update `itch-description.html` and `BUDGET.MD`.

@@ -18,9 +18,12 @@
 ; tall, so art column c, row r is at (2c, 2r). A bullet's own art is centred
 ; 6 half-X in, so a gun under art column c uses DX = 2c - 6 (+1 to centre on
 ; a 2-wide feature).
-; Boss 1 guns: nose (col 17-18, row 16) -> DX 29, DY 34
-;              inner engines (cols 10-13 and 22-25, row 12) -> DX 17 / 41, DY 26
-;              outer engines (cols 4-7 and 28-31) -> DX 5 / 53, DY 26
+; Boss 1 guns: its part 0 is the lower-left sprite (the art's row 21), so
+;              DY = 2 * (row - 21):
+;              nose (cols 17-18, row 40) -> DX 29, DY 38
+;              inner engines (cols 12 and 23, propellers on row 35)
+;              -> DX 19 / 41, DY 28 (a 1-wide feature: DX = 2c - 5)
+;              outer engines (cols 6 and 29, row 33) -> DX 7 / 53, DY 24
 ; Boss 2 guns: gondola (cols 13-20, centre 16-17, bottom row 15) -> DX 27, DY 32
 ;              engine pods (cols 5-9 and 24-28, centres 7 / 26, row 14)
 ;              -> DX 9 / 47, DY 30
@@ -52,11 +55,12 @@ boss_t_script2_hi !byte >boss1_script2,  >boss2_script2,     >boss3_script2,    
 ; from the first part in half-X / pixels; an expanded sprite is 24 x 42).
 ; The first part (0, 0) flies the script; its hits and guns are measured
 ; from its top-left, as before.
-boss1_parts
-        +boss_parts 3
-        +boss_part PTR_BOSS1_L, 0, 0
-        +boss_part PTR_BOSS1_M, 24, 0
-        +boss_part PTR_BOSS1_R, 48, 0
+boss1_parts                             ; the lower row (wings, engines, nose)
+        +boss_parts 4                   ;   and the tail above its middle;
+        +boss_part_box PTR_BOSS1_BL, 0, 0, 0, 2, 24, 28    ;   boxes fit the art
+        +boss_part_box PTR_BOSS1_BM, 24, 0, 0, 0, 24, 40
+        +boss_part_box PTR_BOSS1_BR, 48, 0, 0, 2, 24, 28
+        +boss_part_box PTR_BOSS1_TM, 24, -42, 6, 0, 12, 42 ; (Y wraps: 42 up)
 boss2_parts
         +boss_parts 3
         +boss_part PTR_BOSS2_L, 0, 0
@@ -78,37 +82,42 @@ boss4_parts
 ; -----------------------------------------------------------------------------
 ; Phase 1: glides in from behind the top border, then patrols left and right
 ; above the player, alternating an aimed nose shot with engine spreads.
+BOSS1_Y0 = 28 + 42                      ; its lower row (part 0): the tail
+!if BOSS1_Y0 < HUD_Y + SPR_HEIGHT + MUX_SETUP { ;   above it is hidden in the
+        ; the lower row needs hardware sprites the HUD holds until then
+        !error "boss 1 starts too high: the multiplexer would drop its lower row"
+}                                       ;   top border at first
 boss1_script
-        +path_start 8                   ; hidden in the top border
-        +seg 0, 1, 56                   ; descend to Y 64
+        +path_start BOSS1_Y0
+        +seg 0, 1, 92 - BOSS1_Y0        ; descend: tail at Y 50, nose at 130
 boss1_loop
         +seg 0.5, 0, 36                 ; drift right
-        +boss_fire 29, 34               ; nose gun, aimed
+        +boss_fire 29, 38               ; nose gun, aimed
         +seg 0.5, 0, 36
-        +boss_spread 17, 26             ; left inner engine: V of two shots
+        +boss_spread 19, 28             ; left inner engine: V of two shots
         +seg -0.5, 0, 72                ; back across to the left
-        +boss_fire 29, 34
+        +boss_fire 29, 38
         +seg -0.5, 0, 36
-        +boss_spread 41, 26             ; right inner engine
+        +boss_spread 41, 28             ; right inner engine
         +seg 0.5, 0, 36                 ; return to the middle
         +seg_loop boss1_loop
 
 ; Phase 2 (HP below half): faster, bobbing, and firing twice as often.
 boss1_script2
         +seg 0.75, 0.25, 24
-        +boss_spread 29, 34
+        +boss_spread 29, 38
         +seg 0.75, -0.25, 24
-        +boss_fire 5, 26                ; outer engines, aimed
+        +boss_fire 7, 24                ; outer engines, aimed
         +seg -0.75, 0.25, 24
-        +boss_fire 53, 26
+        +boss_fire 53, 24
         +seg -0.75, -0.25, 24
-        +boss_spread 29, 34
+        +boss_spread 29, 38
         +seg -0.75, 0.25, 24
-        +boss_fire 17, 26
+        +boss_fire 19, 28
         +seg -0.75, -0.25, 24
-        +boss_fire 41, 26
+        +boss_fire 41, 28
         +seg 0.75, 0.25, 24
-        +boss_spread 29, 34
+        +boss_spread 29, 38
         +seg 0.75, -0.25, 24
         +seg_loop boss1_script2
 

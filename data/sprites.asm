@@ -9,29 +9,29 @@
 ; =============================================================================
 
 ; -----------------------------------------------------------------------------
-; Player ship: twin-boom fighter, nose up. Drawn in rows 1-13, so the hitbox
-; is about 12x13 MC pixels (24x13 screen pixels). See PLAYER_H in player.asm.
+; Player ship: a P-38, twin booms, nose up, lit from the top left. Drawn in
+; rows 0-16; its hitbox is only the pod, engines and wing roots (collide.asm).
 ; -----------------------------------------------------------------------------
 spr_ship
 PTR_SHIP = SPR_PTR0 + (spr_ship - SPRITES) / 64
         +spr_begin
-        +spr "............"     ;  0
-        +spr ".....ww....."     ;  1  nose / canopy
-        +spr "..d..ii..d.."     ;  2  propellers
-        +spr ".wiw.ii.wiw."     ;  3  engines
-        +spr ".wiw.ii.wiw."     ;  4
-        +spr "iiiiiwwiiiii"     ;  5  wing
-        +spr "iiiiiwwiiiii"     ;  6
-        +spr "ddiddiiddidd"     ;  7  wing trailing edge
-        +spr "..i..ii..i.."     ;  8  booms
-        +spr "..i..dd..i.."     ;  9
-        +spr "..i......i.."     ; 10
-        +spr "..i......i.."     ; 11
-        +spr ".wiw....wiw."     ; 12  tail fins
-        +spr ".diiiiiiiid."     ; 13  tailplane
-        +spr "............"     ; 14
-        +spr "............"     ; 15
-        +spr "............"     ; 16
+        +spr "..d......d.."     ;  0
+        +spr ".ddd.dd.ddd."     ;  1
+        +spr "..w..ii..w.."     ;  2
+        +spr ".wid.ii.wid."     ;  3
+        +spr ".iid.ww.iid."     ;  4
+        +spr ".iid.wd.iid."     ;  5
+        +spr ".wwwwiiwwww."     ;  6
+        +spr "iiiiiiiiiiii"     ;  7
+        +spr "iiiiiiiiiiid"     ;  8
+        +spr ".diddddddid."     ;  9
+        +spr "..i..ii..i.."     ; 10
+        +spr "..i..dd..i.."     ; 11
+        +spr "..i......i.."     ; 12
+        +spr "..i......i.."     ; 13
+        +spr ".wid....wid."     ; 14
+        +spr ".wiiiiiiiid."     ; 15
+        +spr "..dddddddd.."     ; 16
         +spr "............"     ; 17
         +spr "............"     ; 18
         +spr "............"     ; 19
@@ -71,26 +71,26 @@ PTR_PBULLET = SPR_PTR0 + (spr_pbullet - SPRITES) / 64
 
 ; -----------------------------------------------------------------------------
 ; Enemy fighter: single engine, nose DOWN (flying toward the player).
-; Drawn in rows 0-11, so ENEMY_H = 12.
+; Drawn in rows 0-14, so ENEMY_H = 15.
 ; -----------------------------------------------------------------------------
 spr_fighter
 PTR_FIGHTER = SPR_PTR0 + (spr_fighter - SPRITES) / 64
         +spr_begin
-        +spr "....dddd...."     ;  0  tailplane
+        +spr "...dwwwd...."     ;  0
         +spr ".....ii....."     ;  1
-        +spr ".....ii....."     ;  2  fuselage
-        +spr ".....ww....."     ;  3  canopy
-        +spr "iiiiiiiiiiii"     ;  4  wing
-        +spr "iiwiiiiiiwii"     ;  5  roundels
-        +spr ".iiiiiiiiii."     ;  6
-        +spr ".....ii....."     ;  7
-        +spr ".....ii....."     ;  8
-        +spr "....wiiw...."     ;  9  cowling
-        +spr "....dddd...."     ; 10  propeller
-        +spr "............"     ; 11
-        +spr "............"     ; 12
-        +spr "............"     ; 13
-        +spr "............"     ; 14
+        +spr ".....ii....."     ;  2
+        +spr ".....ii....."     ;  3
+        +spr ".....ii....."     ;  4
+        +spr "....dwid...."     ;  5
+        +spr ".wwwwiiwwww."     ;  6
+        +spr "iiiiiiiiiiii"     ;  7
+        +spr "iiiiiiiiiiid"     ;  8
+        +spr ".ddiiiiiidd."     ;  9
+        +spr ".....ii....."     ; 10
+        +spr "....wiid...."     ; 11
+        +spr "....iiid...."     ; 12
+        +spr "...dddddd..."     ; 13
+        +spr "....d..d...."     ; 14
         +spr "............"     ; 15
         +spr "............"     ; 16
         +spr "............"     ; 17
@@ -100,26 +100,26 @@ PTR_FIGHTER = SPR_PTR0 + (spr_fighter - SPRITES) / 64
         +spr_end
 
 ; -----------------------------------------------------------------------------
-; Enemy leader: twin engine, nose DOWN. Drawn in rows 0-11, so ENEMY_H = 12.
+; Enemy leader: twin engine, nose DOWN. Drawn in rows 0-14 (ENEMY_H = 15).
 ; -----------------------------------------------------------------------------
 spr_leader
 PTR_LEADER = SPR_PTR0 + (spr_leader - SPRITES) / 64
         +spr_begin
-        +spr "...dddddd..."     ;  0  tailplane
-        +spr ".....ii....."     ;  1
-        +spr ".....ii....."     ;  2  fuselage
-        +spr ".....ww....."     ;  3  canopy
-        +spr "iiiiiiiiiiii"     ;  4  wing
-        +spr "iwiiiiiiiiwi"     ;  5
-        +spr "iiiiiiiiiiii"     ;  6
-        +spr ".i..wiiw..i."     ;  7  engines
-        +spr ".i...ii...i."     ;  8
-        +spr ".d...ii...d."     ;  9  propellers
-        +spr ".....ii....."     ; 10
-        +spr ".....dd....."     ; 11  nose
-        +spr "............"     ; 12
-        +spr "............"     ; 13
-        +spr "............"     ; 14
+        +spr "..dwwwwwwd.."     ;  0
+        +spr "...diiiid..."     ;  1
+        +spr ".....ii....."     ;  2
+        +spr ".....ii....."     ;  3
+        +spr ".....ii....."     ;  4
+        +spr ".....ii....."     ;  5
+        +spr "....dwid...."     ;  6
+        +spr ".wwwwiiwwww."     ;  7
+        +spr "iiiiiiiiiiii"     ;  8
+        +spr "iiiiiiiiiiid"     ;  9
+        +spr "diiddiiddiid"     ; 10
+        +spr ".wid.ii.wid."     ; 11
+        +spr ".iid.ii.iid."     ; 12
+        +spr "dddd.wd.dddd"     ; 13
+        +spr ".....dd....."     ; 14
         +spr "............"     ; 15
         +spr "............"     ; 16
         +spr "............"     ; 17
@@ -188,46 +188,100 @@ PTR_EXPL_B = SPR_PTR0 + (spr_expl_b - SPRITES) / 64
         +spr_end
 
 ; -----------------------------------------------------------------------------
-; Boss 1 "Thunder": a four-engine heavy bomber, nose DOWN. Three sprites side
-; by side (left, middle, right), each X+Y expanded (48x42 px), so the whole
-; boss is 144x42 px. Drawn as one 36-pixel-wide picture split in three:
+; Boss 1 "Thunder": a four-engine heavy bomber, nose DOWN, lit from the top
+; left: 144x84 px from 4 X+Y expanded sprites. Drawn as one 36x42-pixel
+; picture (made with a script, then kept here as the master copy) on a grid
+; of 3 x 2 sprites; everything but the tail sits in the lower row, so the
+; top row is only its middle sprite (boss1_tm) and the boss costs the
+; multiplexer 4 sprites, not 6.
 ;
-;   ...........dddddddddddddd...........
-;   ...........diiiiiiiiiiiid...........
-;   .............dddiiiiddd.............
-;   ................diid................
-;   ................diid................
-;   ................diid................
+;   .................wd.................
+;   .................wi.................
+;   .............wwwwiiwwwd.............
+;   ............wiiiiiiiiiid............
+;   ............diiiiiiiiiid............
+;   .............ddddiidddd.............
+;   .................id.................
+;   .................id.................
+;   ................wiid................
+;   ................iiid................
+;   ................iiid................
+;   ................iiid................
+;   ................iiid................
+;   ................iiid................
+;   ................iiid................
+;   ................iiid................
+;   ...............wiiiid...............
+;   ...............iiiiid...............
+;   ...............iiiiid...............
+;   ...............iiiiid...............
+;   ...............iiiiid...............
+;   ..............wiiiiiid..............
+;   ....wwwwwwwwwwiiiiiiiiwwwwwwwwwd....
+;   .wwwiiiiiiiiiiiiiiiiiiiiiiiiiiiiwwd.
+;   wiiiiiidiiiiidiiiiiiiiiidiiiiidiiiid
+;   diiiiiidiiiiidiiiwwiiiiidiiiiidiiiid
+;   .diiiiidiiiiidiiiddiiiiidiiiiidiiid.
+;   ..dddiidiiiiidiiiiiiiiiidiiiiidddd..
+;   .....widdddiidiiiiiiiiiiddddwid.....
+;   .....wid...iiddiiiiiidiid...wid.....
+;   .....wid...wid.iiiiid.wid...wid.....
+;   .....wid...wid.iiiiid.wid...wid.....
+;   ......w....wid.idwwdd.wid....w......
+;   ....ddddd..wid.idwwdd.wid..ddddd....
+;   ............w..iiiiid..w............
+;   ..........dddddiiiiiiddddd..........
 ;   ...............diiiid...............
-;   .diiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiid.
-;   diiiiwwiiiiwwiiiiiiiiiiwwiiiiwwiiiid
-;   iiiiiwwiiiiwwiiiiiiiiiiwwiiiiwwiiiii
-;   diiiiwwiiiiwwiiiiiiiiiiwwiiiiwwiiiid
-;   ....iwwi..iwwi.iiiiii.iwwi..iwwi....
-;   ....dddd..dddd.iwwwwi.dddd..dddd....
-;   ................iwwi................
-;   ................iiii................
-;   ................diid................
+;   ................iwid................
+;   ................wwwd................
+;   ................dwwd................
 ;   .................dd.................
+;   ....................................
 ; -----------------------------------------------------------------------------
-spr_boss1_l
-PTR_BOSS1_L = SPR_PTR0 + (spr_boss1_l - SPRITES) / 64
+spr_boss1_tm
+PTR_BOSS1_TM = SPR_PTR0 + (spr_boss1_tm - SPRITES) / 64
         +spr_begin
-        +spr "...........d"     ;  0
-        +spr "...........d"     ;  1
-        +spr "............"     ;  2
-        +spr "............"     ;  3
-        +spr "............"     ;  4
-        +spr "............"     ;  5
-        +spr "............"     ;  6
-        +spr ".diiiiiiiiii"     ;  7
-        +spr "diiiiwwiiiiw"     ;  8
-        +spr "iiiiiwwiiiiw"     ;  9
-        +spr "diiiiwwiiiiw"     ; 10
-        +spr "....iwwi..iw"     ; 11
-        +spr "....dddd..dd"     ; 12
+        +spr ".....wd....."     ;  0
+        +spr ".....wi....."     ;  1
+        +spr ".wwwwiiwwwd."     ;  2
+        +spr "wiiiiiiiiiid"     ;  3
+        +spr "diiiiiiiiiid"     ;  4
+        +spr ".ddddiidddd."     ;  5
+        +spr ".....id....."     ;  6
+        +spr ".....id....."     ;  7
+        +spr "....wiid...."     ;  8
+        +spr "....iiid...."     ;  9
+        +spr "....iiid...."     ; 10
+        +spr "....iiid...."     ; 11
+        +spr "....iiid...."     ; 12
+        +spr "....iiid...."     ; 13
+        +spr "....iiid...."     ; 14
+        +spr "....iiid...."     ; 15
+        +spr "...wiiiid..."     ; 16
+        +spr "...iiiiid..."     ; 17
+        +spr "...iiiiid..."     ; 18
+        +spr "...iiiiid..."     ; 19
+        +spr "...iiiiid..."     ; 20
+        +spr_end
+
+spr_boss1_bl
+PTR_BOSS1_BL = SPR_PTR0 + (spr_boss1_bl - SPRITES) / 64
+        +spr_begin
+        +spr "............"     ;  0
+        +spr "....wwwwwwww"     ;  1
+        +spr ".wwwiiiiiiii"     ;  2
+        +spr "wiiiiiidiiii"     ;  3
+        +spr "diiiiiidiiii"     ;  4
+        +spr ".diiiiidiiii"     ;  5
+        +spr "..dddiidiiii"     ;  6
+        +spr ".....widdddi"     ;  7
+        +spr ".....wid...i"     ;  8
+        +spr ".....wid...w"     ;  9
+        +spr ".....wid...w"     ; 10
+        +spr "......w....w"     ; 11
+        +spr "....ddddd..w"     ; 12
         +spr "............"     ; 13
-        +spr "............"     ; 14
+        +spr "..........dd"     ; 14
         +spr "............"     ; 15
         +spr "............"     ; 16
         +spr "............"     ; 17
@@ -236,50 +290,50 @@ PTR_BOSS1_L = SPR_PTR0 + (spr_boss1_l - SPRITES) / 64
         +spr "............"     ; 20
         +spr_end
 
-spr_boss1_m
-PTR_BOSS1_M = SPR_PTR0 + (spr_boss1_m - SPRITES) / 64
+spr_boss1_bm
+PTR_BOSS1_BM = SPR_PTR0 + (spr_boss1_bm - SPRITES) / 64
         +spr_begin
-        +spr "dddddddddddd"     ;  0
-        +spr "iiiiiiiiiiii"     ;  1
-        +spr ".dddiiiiddd."     ;  2
-        +spr "....diid...."     ;  3
-        +spr "....diid...."     ;  4
-        +spr "....diid...."     ;  5
-        +spr "...diiiid..."     ;  6
-        +spr "iiiiiiiiiiii"     ;  7
-        +spr "wiiiiiiiiiiw"     ;  8
-        +spr "wiiiiiiiiiiw"     ;  9
-        +spr "wiiiiiiiiiiw"     ; 10
-        +spr "wi.iiiiii.iw"     ; 11
-        +spr "dd.iwwwwi.dd"     ; 12
-        +spr "....iwwi...."     ; 13
-        +spr "....iiii...."     ; 14
-        +spr "....diid...."     ; 15
-        +spr ".....dd....."     ; 16
-        +spr "............"     ; 17
-        +spr "............"     ; 18
-        +spr "............"     ; 19
+        +spr "..wiiiiiid.."     ;  0
+        +spr "wwiiiiiiiiww"     ;  1
+        +spr "iiiiiiiiiiii"     ;  2
+        +spr "idiiiiiiiiii"     ;  3
+        +spr "idiiiwwiiiii"     ;  4
+        +spr "idiiiddiiiii"     ;  5
+        +spr "idiiiiiiiiii"     ;  6
+        +spr "idiiiiiiiiii"     ;  7
+        +spr "iddiiiiiidii"     ;  8
+        +spr "id.iiiiid.wi"     ;  9
+        +spr "id.iiiiid.wi"     ; 10
+        +spr "id.idwwdd.wi"     ; 11
+        +spr "id.idwwdd.wi"     ; 12
+        +spr "w..iiiiid..w"     ; 13
+        +spr "dddiiiiiiddd"     ; 14
+        +spr "...diiiid..."     ; 15
+        +spr "....iwid...."     ; 16
+        +spr "....wwwd...."     ; 17
+        +spr "....dwwd...."     ; 18
+        +spr ".....dd....."     ; 19
         +spr "............"     ; 20
         +spr_end
 
-spr_boss1_r
-PTR_BOSS1_R = SPR_PTR0 + (spr_boss1_r - SPRITES) / 64
+spr_boss1_br
+PTR_BOSS1_BR = SPR_PTR0 + (spr_boss1_br - SPRITES) / 64
         +spr_begin
-        +spr "d..........."     ;  0
-        +spr "d..........."     ;  1
-        +spr "............"     ;  2
-        +spr "............"     ;  3
-        +spr "............"     ;  4
-        +spr "............"     ;  5
-        +spr "............"     ;  6
-        +spr "iiiiiiiiiid."     ;  7
-        +spr "wiiiiwwiiiid"     ;  8
-        +spr "wiiiiwwiiiii"     ;  9
-        +spr "wiiiiwwiiiid"     ; 10
-        +spr "wi..iwwi...."     ; 11
-        +spr "dd..dddd...."     ; 12
+        +spr "............"     ;  0
+        +spr "wwwwwwwd...."     ;  1
+        +spr "iiiiiiiiwwd."     ;  2
+        +spr "diiiiidiiiid"     ;  3
+        +spr "diiiiidiiiid"     ;  4
+        +spr "diiiiidiiid."     ;  5
+        +spr "diiiiidddd.."     ;  6
+        +spr "ddddwid....."     ;  7
+        +spr "d...wid....."     ;  8
+        +spr "d...wid....."     ;  9
+        +spr "d...wid....."     ; 10
+        +spr "d....w......"     ; 11
+        +spr "d..ddddd...."     ; 12
         +spr "............"     ; 13
-        +spr "............"     ; 14
+        +spr "dd.........."     ; 14
         +spr "............"     ; 15
         +spr "............"     ; 16
         +spr "............"     ; 17

@@ -35,10 +35,13 @@ anim_init
         ldy #0
         lda (zp_ptr0),y         ; count
         sta anim_count
-        ldx #0
-.next   cpx anim_count
-        beq .done
-        iny
+        inc zp_ptr0             ; zp_ptr0 = the first animation
+        bne +
+        inc zp_ptr0+1
++       ldx #0
+.next   cpx anim_count          ; (the table is longer than 256 bytes: the
+        beq .done               ;   pointer moves on, Y only reads a header)
+        ldy #0
         lda (zp_ptr0),y         ; char code -> its address in the charset
         pha
         asl
@@ -69,36 +72,33 @@ anim_init
         sta anim_t,x
         lda #0
         sta anim_f,x
-        tya                     ; its frames start after the 4-byte header
-        sec                     ;   (+1: Y points at its last header byte)
-        adc zp_ptr0
+        lda zp_ptr0             ; its frames start after the 4-byte header
+        clc
+        adc #4
         sta anim_bl,x
         sta anim_pl,x
         lda zp_ptr0+1
         adc #0
         sta anim_bh,x
         sta anim_ph,x
-        lda anim_n,x            ; skip its frames: Y += n * 8 (via the pointer)
+        lda anim_n,x            ; the next animation: after its n * 8 bytes
         asl
         asl
         asl
-        sta zp_tmp0
+        sta zp_tmp0             ; (n * 8) & $FF
         lda anim_n,x
         lsr
         lsr
         lsr
         lsr
-        lsr                     ; (n * 8) >> 8
-        sta zp_tmp1
-        tya
+        lsr
+        sta zp_tmp1             ; (n * 8) >> 8
+        lda anim_bl,x
         clc
         adc zp_tmp0
-        tay
-        bcc +
-        inc zp_tmp1
-+       lda zp_tmp1             ; whole pages: move the pointer instead of Y
-        clc
-        adc zp_ptr0+1
+        sta zp_ptr0
+        lda anim_bh,x
+        adc zp_tmp1
         sta zp_ptr0+1
         inx
         jmp .next

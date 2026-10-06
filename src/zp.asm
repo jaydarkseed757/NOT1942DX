@@ -98,7 +98,7 @@ st_mode       = $66     ; 0 = literal run, 1 = match
 lz_mp         = $67     ; 16-bit: unpack's match source
 st_out        = $69     ; chars of the next row in row_buf so far (0-40)
 st_lim        = $6a     ; decode_some: stop at this count
-mux_pin_dirty = $6b     ; mux.asm: display lists still to get new pinned entries
+mux_pin_dirty = $6b     ; mux.asm: lists still to get new pinned entries (bit per list)
 mux_pin_msb   = $6c     ;   the pinned entries' $D010 bits
 mux_pin_mc    = $6d     ;   ...and $D01C bits
 shake_timer   = $6e     ; frames of screen shake left (the IRQ counts it down)
