@@ -26,7 +26,9 @@
 ;   mux_pins_changed, cleared as that list gets them: mux_build may run
 ;   twice into the same list before the IRQ takes it, at level start). An
 ;   off one sits at line 0, in the border. They aren't sorted: in the top
-;   band the HUD has those 4 hardware sprites anyway.
+;   band the HUD has those 4 hardware sprites anyway. With no boss bar on,
+;   its entry 3 goes to the sorted sprites instead: 5 hardware sprites are
+;   free beside the HUD (formations enter the screen there).
 ;
 ; THE IRQs (system.asm)
 ;   The frame IRQ (line 251) takes a committed list, writes its first 8
@@ -259,8 +261,11 @@ mux_build
         adc #8
         sta mux_te              ; (first the end of entries 0-7)
         tya
-        adc #MUX_PIN            ; (carry clear) the sorted entries start here
-        tay
+        adc #MUX_PIN            ; (carry clear) the sorted entries start here,
+        ldx spr_on + SLOT_HUD_BAR
+        bne +
+        sbc #0                  ;   or one sooner (carry clear: -1) with no boss
++       tay                     ;   bar: its entry and hw sprite 3 are free
         ldx #0
         stx mux_ti
 .first  ldx mux_ti

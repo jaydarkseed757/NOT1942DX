@@ -8,7 +8,8 @@
 ; Layout (screen rows): 0 version (top right), 3-7 logo, 8-10 "DX", 12 "by jdc", ship bobbing around row 14, 19 "press fire to
 ; start" (blinking), 22 controls, 24 "m: music on/off" and "p: pause".
 ; Every TITLE_FLYBY frames a V of three fighters dives across the screen. M switches the music on or off for
-; the whole session (music_off); sound effects play either way.
+; the whole session (music_off); sound effects play either way. Keys 1-4
+; start a game at that level with its boss straight away (practice).
 ; Text is hires, so its colour RAM is set here; new_game -> init_video
 ; restores colour RAM for play.
 ; =============================================================================
@@ -139,6 +140,12 @@ title_update
         and #INP_FIRE
         beq +
         jmp new_game
++       jsr read_level_key      ; 1-4: straight to that level's boss
+        beq +
+        sta boss_now            ; (non-zero)
+        sec
+        sbc #1
+        jmp new_game_at
 +       lda input_new
         and #INP_MUSIC
         beq +

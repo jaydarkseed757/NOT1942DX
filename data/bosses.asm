@@ -24,9 +24,9 @@
 ;              inner engines (cols 12 and 23, propellers on row 35)
 ;              -> DX 19 / 41, DY 28 (a 1-wide feature: DX = 2c - 5)
 ;              outer engines (cols 6 and 29, row 33) -> DX 7 / 53, DY 24
-; Boss 2 guns: gondola (cols 13-20, centre 16-17, bottom row 15) -> DX 27, DY 32
-;              engine pods (cols 5-9 and 24-28, centres 7 / 26, row 14)
-;              -> DX 9 / 47, DY 30
+; Boss 2 guns: turrets (2 wide at cols 9, 17, 25, row 10) -> DX 13 / 29 / 45,
+;              DY 20; lower engine pods (cols 10-11 and 20-21, row 19)
+;              -> DX 15 / 35, DY 38
 ; Boss 3 guns: bow (cols 16-19, centre 17-18, row 16) -> DX 29, DY 34
 ;              propellers (row 11) at cols 6 / 12 / 23 / 29 -> DX 6 / 18 / 40 / 52,
 ;              DY 24
@@ -61,11 +61,11 @@ boss1_parts                             ; the lower row (wings, engines, nose)
         +boss_part_box PTR_BOSS1_BM, 24, 0, 0, 0, 24, 40
         +boss_part_box PTR_BOSS1_BR, 48, 0, 0, 2, 24, 28
         +boss_part_box PTR_BOSS1_TM, 24, -42, 6, 0, 12, 42 ; (Y wraps: 42 up)
-boss2_parts
-        +boss_parts 3
-        +boss_part PTR_BOSS2_L, 0, 0
-        +boss_part PTR_BOSS2_M, 24, 0
-        +boss_part PTR_BOSS2_R, 48, 0
+boss2_parts                             ; the hull is hit; the pods above and
+        +boss_parts 3                   ;   below it aren't; the tail's fins are
+        +boss_part_box PTR_BOSS2_L, 0, 0, 0, 6, 24, 30
+        +boss_part_box PTR_BOSS2_M, 24, 0, 0, 6, 24, 30
+        +boss_part_box PTR_BOSS2_R, 48, 0, 0, 2, 24, 38
 boss3_parts
         +boss_parts 3
         +boss_part PTR_BOSS3_L, 0, 0
@@ -125,24 +125,24 @@ boss1_script2
 ; Boss 2 "Leviathan"
 ; -----------------------------------------------------------------------------
 ; Phase 1: sinks slowly into view, then drifts lazily from side to side. The
-; gondola gun aims at you; the engine pods fire spreads.
+; turrets aim at you; the lower engine pods fire spreads.
 boss2_script
         +path_start 8
         +seg 0, 0.75, 72                ; slow descent to Y 62
 boss2_loop
         +seg 0.375, 0.125, 48           ; drift right, sinking a little
-        +boss_fire 27, 32               ; gondola, aimed
+        +boss_fire 29, 20               ; middle turret, aimed
         +seg 0.375, -0.125, 48          ; ...and rising back
-        +boss_spread 47, 30             ; right engine pod
+        +boss_spread 35, 38             ; right lower engine pod
         +seg -0.375, 0.125, 48
-        +boss_fire 27, 32
+        +boss_fire 29, 20
         +seg -0.375, -0.125, 48
-        +boss_spread 9, 30              ; left engine pod
+        +boss_spread 15, 38             ; left lower engine pod
         +seg -0.375, 0.125, 48
-        +boss_fire 27, 32
+        +boss_fire 29, 20
         +seg -0.375, -0.125, 48
         +seg 0.375, 0.125, 48           ; back to the middle
-        +boss_spread 27, 32
+        +boss_spread 29, 20
         +seg 0.375, -0.125, 48
         +seg_loop boss2_loop
 
@@ -152,15 +152,15 @@ boss2_script2
         +seg 0, 0.5, 24                 ; drops 12 px, closer to the player
 boss2_loop2
         +seg 0.75, 0, 24
-        +boss_spread 9, 30
+        +boss_spread 15, 38
         +seg 0.75, 0, 24
-        +boss_fire 27, 32
+        +boss_fire 13, 20               ; left turret
         +seg -0.75, 0, 24
-        +boss_spread 47, 30
+        +boss_spread 35, 38
         +seg -0.75, 0, 24
-        +boss_fire 27, 32
+        +boss_fire 45, 20               ; right turret
         +seg -0.75, 0, 24
-        +boss_spread 27, 32
+        +boss_spread 29, 20
         +seg 0.75, 0, 24
         +seg_loop boss2_loop2
 

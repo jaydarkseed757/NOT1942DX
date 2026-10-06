@@ -14,6 +14,8 @@
 ;     W     = row 1, col 1      A = row 1, col 2      S = row 1, col 5
 ;     D     = row 2, col 2      SPACE = row 7, col 4
 ;     P     = row 5, col 1      RUN/STOP = row 7, col 7     M = row 4, col 4
+;     1     = row 7, col 0      2 = row 7, col 3    (read_level_key, title only)
+;     3     = row 1, col 0      4 = row 1, col 3
 ;
 ; HARDWARE LIMITATION: joystick 2 shares $DC00 with the keyboard row select.
 ; Holding the stick while pressing keys can select extra rows and give false
@@ -43,6 +45,46 @@ init_input
         lda #$ff                ; pretend everything was held at boot, so a
         sta input_bits          ;   button held during load doesn't fire
         sta input_prev          ;   (read_input copies input_bits -> input_prev)
+        rts
+
+!zone read_level_key
+; -----------------------------------------------------------------------------
+; read_level_key: the title screen's keys 1-4 (go straight to that level's
+; boss). A = 1-4 for the lowest one held, else 0 (Z set). Clobbers A,
+; zp_tmp0, zp_tmp1.
+; -----------------------------------------------------------------------------
+read_level_key
+        lda #%01111111          ; row 7: 1 (col 0), 2 (col 3)
+        sta CIA1_PRA
+        lda CIA1_PRB
+        eor #$ff                ; pressed = 1
+        sta zp_tmp0
+        lda #%11111101          ; row 1: 3 (col 0), 4 (col 3)
+        sta CIA1_PRA
+        lda CIA1_PRB
+        eor #$ff
+        sta zp_tmp1
+        lda #$ff
+        sta CIA1_PRA            ; leave no rows selected
+        lda zp_tmp0
+        lsr
+        bcs .one
+        and #%00000100          ; (col 3, shifted)
+        bne .two
+        lda zp_tmp1
+        lsr
+        bcs .three
+        and #%00000100
+        bne .four
+        lda #0
+        rts
+.one    lda #1
+        rts
+.two    lda #2
+        rts
+.three  lda #3
+        rts
+.four   lda #4
         rts
 
 !zone read_input

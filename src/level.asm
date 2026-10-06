@@ -166,6 +166,9 @@ intro_update
         jmp level_begin
 +       rts
 
+boss_now !byte 0                ; non-zero: the next level_begin starts with
+                                ;   its boss (the title's keys 1-4)
+
 !zone level_begin
 ; -----------------------------------------------------------------------------
 ; level_begin: build the current level and start playing it.
@@ -189,6 +192,12 @@ level_begin
         sta paused
         sta boss_flag
         sta boss_state
+        lda boss_now            ; the title's keys 1-4: this level's boss
+        beq +                   ;   comes straight away, once (the levels
+        sta boss_flag           ;   after it play normally)
+        lda #0
+        sta boss_now
++
 !ifdef BOSS_TEST {
         lda #1                  ; test hook (acme -DBOSS_TEST): the boss comes
         sta boss_flag           ;   straight away (stream spawns are dropped)

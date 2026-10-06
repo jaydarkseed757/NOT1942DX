@@ -27,12 +27,14 @@
 ;                  chars 128-143 : on the title and text screens, the logo's
 ;                                  2x2 block quadrants (restore_quads)
 ;                  chars 144-223 : in the ending, its big scroller strip
-;   $5000-$6FFF  SPRITES   - 128 sprite shapes x 64 bytes (pointers $40-$BF)
+;   $5000-$5FFF  SPRITES   - 64 sprite shapes x 64 bytes (pointers $40-$7F)
+;   $6000-$6FFF  DATA3     - music, songs, sound effects, title screen data,
+;                            the ending's text, the aiming tables: data that
+;                            doesn't grow (the VIC never looks there)
 ;   $7000-$7FFF  RING      - the level map's last 4 KB, unpacked a row at a
 ;                            time as it scrolls in (CPU-only; not loaded)
 ;
-;   $8000-$CFFF  DATA2     - music, songs, sound effects, title screen data,
-;                            waves, bosses, the level packs (20 KB)
+;   $8000-$CFFF  DATA2     - waves, bosses, the level packs (20 KB)
 ;   $D000-$DFFF  I/O (VIC, SID, colour RAM, CIAs)
 ;   $E000-$FFFF  RAM under KERNAL; we put our IRQ/NMI vectors at $FFFA-$FFFF.
 ;   $E000-       BSS: run-time tables (sprite slots, multiplexer lists,
@@ -112,6 +114,8 @@ SCREEN_A    = $4000
 SCREEN_B    = $4400
 CHARSET     = $4800
 SPRITES     = $5000
+SPRITES_END = $6000         ; 64 shapes; the rest of the bank's free RAM is
+DATA3_BASE  = $6000         ;   DATA3
 RING        = $7000         ; 4 KB aligned: the unpacker wraps on the high byte
 RING_SIZE   = $1000
 DATA2_BASE  = $8000

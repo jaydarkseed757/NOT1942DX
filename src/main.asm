@@ -53,17 +53,20 @@ entry
 ; Each level is then built by level_begin (level.asm), so any per-level state
 ; must be reset there, and per-game state here.
 ; Test hook: acme -DSTART_LEVEL=n starts at level n (1-4).
+; new_game_at: the same, starting at level A (0-3); the title's keys 1-4
+; use it, with boss_now set so that level starts with its boss.
 ; -----------------------------------------------------------------------------
 new_game
-        lda #START_LIVES
-        sta lives
-        jsr init_score
 !ifdef START_LEVEL {
         lda #START_LEVEL - 1
 } else {
         lda #0
 }
+new_game_at
         sta level
+        lda #START_LIVES
+        sta lives
+        jsr init_score
         jmp level_intro_enter
 
 ; -----------------------------------------------------------------------------
@@ -210,13 +213,11 @@ code_end
 !zone data
 * = SPRITES                     ; sprite shapes
 !source "data/sprites.asm"
-!if * > RING {
-        !error "sprites overflow into the map ring"
+!if * > SPRITES_END {
+        !error "sprites overflow into DATA3 (64 shapes at most)"
 }
-                                ; RING: the level map, unpacked at run time
-                                ;   (nothing is loaded there)
 
-* = DATA2_BASE                  ; music, title, waves, bosses, level packs
+* = DATA3_BASE                  ; data that doesn't grow: music, title, ending
 !source "data/music.asm"
 !source "data/music_title.asm"
 !source "data/music_boss.asm"
@@ -229,6 +230,14 @@ code_end
 !source "data/ending.asm"       ; the ending's text
 !source "data/aim.asm"          ; the enemy shots' aiming table
 !source "data/tiles.asm"        ; the title logo's quadrant chars (a copy)
+data3_end
+!if data3_end > RING {
+        !error "DATA3 overflows into the map ring"
+}
+                                ; RING: the level map, unpacked at run time
+                                ;   (nothing is loaded there)
+
+* = DATA2_BASE                  ; waves, bosses, level packs
 !source "data/waves.asm"        ; enemy types + paths (levels refer to them)
 !source "data/bosses.asm"
 !source "build/gen/level1.asm"  ; level packs, made from data/levels/*.png
