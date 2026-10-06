@@ -8,6 +8,11 @@
 ; still runs at 1 MHz, and badlines and sprite DMA still stall the CPU.
 ;
 ; turbo_detect, once at boot (before the IRQs start):
+;   0. A real C128 (in C64 mode) would pass the test below, and its VIC shows
+;      no picture at 2 MHz. Its VIC has a keyboard register at $D02F (the low
+;      3 bits read back, the rest read 1); a C64, and the MiSTer core, read
+;      $FF there. If it reads back, a screen says to use the standard version
+;      instead, and the turbo build stops there (before touching $D030).
 ;   1. C128 mode: $D030 bit 0 switches turbo on and off, and reads back
 ;      ($FE | bit 0); a stock C64 reads $FF whatever is written. Write 0 and
 ;      read it back: bit 0 = 0 means the register is there, so turn turbo on.
@@ -20,7 +25,7 @@
 ; The title shows the speed found ("turbo 3x").
 ;
 ; Not for a real C128: its 2 MHz mode ($D030 bit 0 too) passes the test,
-; but its VIC shows no picture at 2 MHz.
+; but its VIC shows no picture at 2 MHz: step 0 catches it.
 ; =============================================================================
 
 TURBO_MIN    = 2                ; the least speed the turbo build accepts
@@ -37,7 +42,15 @@ turbo_speed !byte 1             ; the speed found (1 = a stock C64)
 ; zp_tmp1, zp_ptr0.
 ; -----------------------------------------------------------------------------
 turbo_detect
-        jsr turbo_c128          ; C128 mode: switch it on
+        lda #0                  ; a real C128? Its $D02F reads back $F8
+        sta VIC_D02F
+        lda VIC_D02F
+        ldx #$ff
+        stx VIC_D02F            ; (no extra keyboard lines selected)
+        cmp #$ff
+        beq +
+        jmp turbo_no_c128       ; yes: the turbo build can't run there
++       jsr turbo_c128          ; C128 mode: switch it on
         jsr turbo_measure
         cmp #TURBO_MIN
         bcs .ok
@@ -200,3 +213,44 @@ turbo_screen
 .t8 !scr "the standard version runs on any pal c64"
 .l8 = * - .t8
 !if .l8 > COLS { !error "turbo_screen: a line is too long" }
+
+!zone turbo_no_c128
+; -----------------------------------------------------------------------------
+; turbo_no_c128: a real C128: say so, and stop (the standard version runs on
+; it in C64 mode, at 1 MHz). Interrupts off; never returns.
+; -----------------------------------------------------------------------------
+turbo_no_c128
+        jsr set_title_palette
+        jsr init_video
+        +print_both TURBO_ROW + 0,  (COLS - .l0) / 2, .t0, .l0
+        +print_both TURBO_ROW + 3,  (COLS - .l1) / 2, .t1, .l1
+        +print_both TURBO_ROW + 5,  (COLS - .l2) / 2, .t2, .l2
+        +print_both TURBO_ROW + 6,  (COLS - .l3) / 2, .t3, .l3
+        +print_both TURBO_ROW + 9,  (COLS - .l4) / 2, .t4, .l4
+        +print_both TURBO_ROW + 10, (COLS - .l5) / 2, .t5, .l5
+        +print_both TURBO_ROW + 11, (COLS - .l6) / 2, .t6, .l6
+        ldx #COLS - 1
+-       lda #COL_WHITE
+        !for .r, 1, 11 { sta COLRAM + (TURBO_ROW + .r) * COLS,x }
+        lda #COL_CYAN
+        sta COLRAM + TURBO_ROW * COLS,x
+        dex
+        bpl -
+        jsr video_on
+-       jmp -                   ; stop here
+
+.t0 !scr "not 1942 dx - turbo version"
+.l0 = * - .t0
+.t1 !scr "this machine is a commodore 128."
+.l1 = * - .t1
+.t2 !scr "its graphics chip shows no picture"
+.l2 = * - .t2
+.t3 !scr "at 2 mhz, so this version can't run."
+.l3 = * - .t3
+.t4 !scr "please load the standard version,"
+.l4 = * - .t4
+.t5 !scr "not 1942 dx: it runs on any pal c64,"
+.l5 = * - .t5
+.t6 !scr "and on a c128 in c64 mode."
+.l6 = * - .t6
+

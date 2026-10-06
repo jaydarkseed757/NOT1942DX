@@ -128,7 +128,10 @@ These assume at least 2× speed and are scaled by compile-time knobs:
 
 **Rules:** no cycle-counted code (raster IRQs and polling only), and minimal I/O access in the hot loops, since I/O runs at 1 MHz.
 
-### M13. Testing
+### M13. Testing (done)
+
+Checked by the user on a MiSTer: everything in `MISTER-TEST.md` passed (detection in each OSD mode, play at 2x-4x, and the profiler disk from `make turbo-profile`). Added for safety: the turbo build recognises a real C128 by its `$D02F` and says to use the standard version, instead of switching it to 2 MHz and a blank screen.
+
 Proxy testing in VICE `xscpu64`: a fast CPU with a normal-speed VIC, and the timing-based detection works there. The user tests on real MiSTer hardware at 2×, 3× and 4×.
 
 ## Files touched (representative)

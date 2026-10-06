@@ -16,6 +16,10 @@
 #                 .prg and the .crt
 #   make turbo    the MiSTer turbo build (-DTURBO=1, src/turbo.asm): the same
 #                 three files as release, named not1942dx-turbo.*
+#   make turbo-profile  build/not1942dx-turbo-profile.d64: the turbo build
+#                 with the PROFILE test hook, for measuring on a MiSTer: the
+#                 text screens show the worst-case cycle counts in hex (see
+#                 MISTER-TEST.md)
 #   make run-turbo  build the turbo PRG and run it in xscpu64, VICE's SuperCPU:
 #                 a 20 MHz CPU with the C64's VIC, SID and CIAs, the nearest
 #                 VICE has to the MiSTer's turbo (which it can't emulate: its
@@ -45,6 +49,8 @@ TCRUNCHED := build/not1942dx-turbo.prg
 TD64 := build/not1942dx-turbo.d64
 TCRT := build/not1942dx-turbo.crt
 TSYM := build/not1942dx-turbo-dev.sym
+TPPRG := build/not1942dx-turbo-profile-dev.prg
+TPD64 := build/not1942dx-turbo-profile.d64
 
 PYTHON ?= python3
 
@@ -62,7 +68,7 @@ ifdef DEBUG
 ACMEFLAGS += -DDEBUG=1
 endif
 
-.PHONY: all gen crunch d64 crt release turbo run run-d64 run-crt run-turbo clean
+.PHONY: all gen crunch d64 crt release turbo turbo-profile run run-d64 run-crt run-turbo clean
 
 all: $(PRG)
 
@@ -108,6 +114,16 @@ $(TCRUNCHED): $(TPRG)
 $(TD64): $(TCRUNCHED)
 	rm -f $@
 	$(C1541) -format "not 1942 dx t,jd" d64 $@ -write $(TCRUNCHED) "not 1942 dx t"
+
+turbo-profile: $(TPD64)
+
+$(TPPRG): $(SRC) $(GEN) Makefile | build
+	$(ACME) -f cbm --cpu 6502 -v1 -DTURBO=1 -DPROFILE=1 -o $@ src/main.asm
+
+$(TPD64): $(TPPRG)
+	$(EXOMIZER) sfx sys -x1 -q -o build/not1942dx-turbo-profile.prg $<
+	rm -f $@
+	$(C1541) -format "not 1942 dx tp,jd" d64 $@ -write build/not1942dx-turbo-profile.prg "not 1942 dx tp"
 
 $(TCRT): $(TPRG) src/crt.asm src/defs.asm
 	$(ACME) -f plain -DTURBO=1 -DPRG_SIZE=$$(wc -c < $(TPRG) | tr -d ' ') -o $@ src/crt.asm

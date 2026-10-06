@@ -22,6 +22,7 @@ make release    # everything that ships: .d64, compressed .prg, .crt
 make gen        # just the level packs (build/gen/levelN.asm), e.g. before a test build
 make turbo      # the MiSTer turbo build: build/not1942dx-turbo.{prg,d64,crt}
 make run-turbo  # the turbo build in xscpu64 (VICE's 20 MHz SuperCPU), real time
+make turbo-profile  # build/not1942dx-turbo-profile.d64: the turbo build with PROFILE, for the MiSTer (MISTER-TEST.md)
 make DEBUG=1 run  # red border bar = time spent in the main loop
 make clean
 ```
@@ -53,6 +54,7 @@ DX is built in milestones (details in `PLAN.md`):
 - **Phase 3, the MiSTer turbo build:** M11-M13.
   - M11: detection and build (done): `make turbo`, turbo detection at boot (`src/turbo.asm`), a "set turbo in the OSD" screen below 2x, the speed on the title
   - M12: turbo features (done): 34-50 extra enemies a level, boss bullet patterns (sweeps, bursts), 10 enemy-bullet slots; the stock build is byte for byte unchanged
+  - M13: testing (done): the user checked everything in `MISTER-TEST.md` on a MiSTer (detection in Off / Smart / C128 mode, play at 2x-4x); the turbo build stops with a message on a real C128 (its `$D02F` reads back)
 
 After each milestone, make sure it assembles with no errors or warnings, then stop and tell the user what to test in VICE, with likely bugs ranked by severity. Don't start the next milestone until the user says so. Commit only when the user asks.
 
@@ -92,7 +94,7 @@ The turbo build must therefore:
 It is not meant for a real C128, whose VIC display breaks at 2 MHz.
 
 How the turbo build does it (M11, `src/turbo.asm`, only assembled with `-DTURBO=1`; the stock build is byte for byte the same without it):
-- `turbo_detect` runs at boot, before the IRQs start. It writes 0 to `$D030` and reads it back; bit 0 = 0 means the C128-mode register is there, so it writes 1 (turbo on). Then `turbo_measure` times a RAM-only loop (`TURBO_CYCLES`) against CIA1 timer A, which counts at 1 MHz in every mode, and rounds the ratio into `turbo_speed` (1 on a stock C64, 20 on VICE's SuperCPU).
+- `turbo_detect` runs at boot, before the IRQs start. First it checks for a real C128 (in C64 mode), whose 2 MHz would pass the test but blank its VIC: its `$D02F` (extra keyboard lines) reads back the low 3 bits written, where a C64 reads `$FF`. On a C128 it shows "use the standard version" and stops, before touching `$D030` (checked in VICE's x128 with `-go64`). Then it writes 0 to `$D030` and reads it back; bit 0 = 0 means the C128-mode register is there, so it writes 1 (turbo on). Then `turbo_measure` times a RAM-only loop (`TURBO_CYCLES`) against CIA1 timer A, which counts at 1 MHz in every mode, and rounds the ratio into `turbo_speed` (1 on a stock C64, 20 on VICE's SuperCPU).
 - Below `TURBO_MIN` (2) it shows a screen saying how to set turbo in the OSD, and re-checks both modes about once a second until turbo is on. The title's version text shows the speed ("dx 1.0 turbo 3x"; 10x and up show as "+x").
 - The game itself needs no changes to run in turbo: it waits for frames, the multiplexer and the colour chase follow the raster, and nothing counts cycles.
 - What the spare time buys (M12). The VIC still shows 8 sprites a line, so the extras spread out down the screen rather than adding to a line:
