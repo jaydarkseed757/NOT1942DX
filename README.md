@@ -110,6 +110,8 @@ make clean
 
 The level pictures are turned into packed data at build time, so a fresh checkout needs nothing but the tools above.
 
+To make a release archive, run `./release.sh`. It builds both versions from clean and checks each compressed program against its uncompressed build. It then writes `dist/not1942dx-<version>.zip` with the disk, program and cartridge files, the README, the licence and checksums. `./release.sh --publish` also creates the GitHub release.
+
 ## How it's put together
 
 | Path | What's there |
