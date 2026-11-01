@@ -25,6 +25,12 @@
 #                 VICE has to the MiSTer's turbo (which it can't emulate: its
 #                 2x-4x and C128-mode register need the real core). Real time
 #                 (PAL, no warp), injected straight into RAM
+#   make ultimate send build/not1942dx.prg to the C64 Ultimate / Ultimate 64
+#                 over its REST API and RUN it (tools/run_ultimate.sh;
+#                 ULT_HOST, ULT_PASSWORD, ULT_FILE=build/not1942dx.crt
+#                 starts the cartridge, ULT_FILE=build/not1942dx.d64 mounts
+#                 the disk, ULT_FILE=build/not1942dx-turbo.prg the turbo
+#                 version, ULT_DRY=1 only prints)
 #   make gen      only build the level packs (build/gen/), for test builds
 #   make clean    remove build outputs
 #
@@ -68,7 +74,7 @@ ifdef DEBUG
 ACMEFLAGS += -DDEBUG=1
 endif
 
-.PHONY: all gen crunch d64 crt release turbo turbo-profile run run-d64 run-crt run-turbo clean
+.PHONY: all gen crunch d64 crt release turbo turbo-profile run run-d64 run-crt run-turbo ultimate clean
 
 all: $(PRG)
 
@@ -144,6 +150,13 @@ run-crt: $(CRT)
 # screen at 1 MHz). -speed 100: emulate in real time.
 run-turbo: $(TPRG)
 	$(XSCPU) -pal +warp -speed 100 -speedswitch -autostartprgmode 1 -autostart $(TPRG)
+
+# Run on the C64 Ultimate: the PRG is DMA-loaded and RUN over the REST API
+# (nothing written to its storage). ULT_FILE picks another build file: a .crt
+# is started as a cartridge, a .d64 is mounted on drive A and the machine reset.
+ULT_FILE ?= $(CRUNCHED)
+ultimate: $(ULT_FILE)
+	ULT_FILE="$(ULT_FILE)" tools/run_ultimate.sh
 
 build:
 	mkdir -p build
