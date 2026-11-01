@@ -158,7 +158,10 @@ player_update
         sta player_state
         rts
 
-.alive  jsr .blink
+.alive  lda lvl_state           ; LEVEL CLEAR: the landing flies the ship
+        cmp #LS_CLEAR           ;   (landing.asm), no blink, no controls
+        beq .done
+        jsr .blink
         lda input_bits
         and #INP_UP
         beq .no_up

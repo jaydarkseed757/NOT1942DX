@@ -226,8 +226,10 @@ code_end
 !source "src/ending_fx.asm"     ; the ending's show (fireworks, stars, P-38s):
                                 ;   code, in the spare sprite space (the code
 fx_end                          ;   area below $4000 is full in the turbo build)
+!source "src/landing.asm"       ; after each boss, the carrier landing (code,
+landing_end                     ;   in the spare sprite space too)
 !if * > SPRITES_END {
-        !error "sprites (+ ending_fx.asm) overflow into DATA3"
+        !error "sprites (+ ending_fx.asm, landing.asm) overflow into DATA3"
 }
 
 * = DATA3_BASE                  ; data that doesn't grow: music, title, ending
@@ -250,6 +252,14 @@ data3_end
 !if data3_end > RING {
         !error "DATA3 overflows into the map ring"
 }
+
+* = code_end                    ; the landing's fanfare: data, in the code
+!source "data/music_clear.asm"  ;   area after the code (the turbo build's
+tune_end                        ;   DATA3 is full, and its DATA2 must end by
+!if tune_end > VIC_BASE {       ;   $CF01 for the cartridge's page copier);
+        !error "the fanfare overflows the code area into VIC bank 1"
+}                               ;   assembled after data/music.asm, whose
+                                ;   instruments it uses
                                 ; RING: the level map, unpacked at run time
                                 ;   (nothing else is loaded there, except:)
 !ifdef TURBO {

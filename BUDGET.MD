@@ -8,21 +8,23 @@ One PAL frame is 312 lines × 63 cycles = **19,656 cycles**. The game does one f
 
 The table shows the worst frame in each part of the game, counted from the start of the raster IRQ (line 251) to the end of that frame's work. It includes the IRQs (the frame IRQ and the multiplexer's), the border work and the game logic. In play it stops before `scroll_colour` (see "Colour chase" below). Measure it with `python3 tools/profile.py`.
 
-| Part | Worst frame (cycles) | Share of the frame | Boss straight away (`--boss`) | After M6 | After M5 | NOT 1942 1.1 |
-|---|---:|---:|---:|---:|---:|---:|
-| Title screen | 4,895 | 25% | | | | 2,276 |
-| Level 1 | 18,378 | 93% | 18,405 | 17,895 | 17,668 | 6,507 |
-| Level 2 | 16,648 | 85% | 15,926 | 15,967 | 16,063 | 6,588 |
-| Level 3 | 17,871 | 91% | 17,177 | 14,874 | 14,724 | 5,995 |
-| Level 4 | 17,944 | 91% | 17,804 | 17,845 | 16,698 | 7,080 |
-| Victory screen (with the fireworks) | 6,375 | 32% | | 1,977 | 1,986 | 1,382 |
-| Credits roll (with the escort) | 9,499 | 48% | | 6,143 | 6,145 | 5,314 |
-| Finale scroller (with the fireworks) | 15,452 | 79% | | 11,840 | 11,847 | 10,956 |
+| Part | Worst frame (cycles) | Share of the frame | Boss straight away (`--boss`) | Before the landing | After M6 | After M5 | NOT 1942 1.1 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Title screen | 4,895 | 25% | | 4,895 | | | 2,276 |
+| Level 1 | 19,031 | 97% | 18,405 | 18,378 | 17,895 | 17,668 | 6,507 |
+| Level 2 | 18,875 | 96% | 15,926 | 16,648 | 15,967 | 16,063 | 6,588 |
+| Level 3 | 17,617 | 90% | 17,177 | 17,871 | 14,874 | 14,724 | 5,995 |
+| Level 4 | 18,957 | 96% | 17,804 | 17,944 | 17,845 | 16,698 | 7,080 |
+| Victory screen (with the fireworks) | 6,395 | 33% | | 6,375 | 1,977 | 1,986 | 1,382 |
+| Credits roll (with the escort) | 9,518 | 48% | | 9,499 | 6,143 | 6,145 | 5,314 |
+| Finale scroller (with the fireworks) | 15,477 | 79% | | 15,452 | 11,840 | 11,847 | 10,956 |
+
+The carrier landing (October 2026, `src/landing.asm`) added its sequence and `mux_build`'s step 4, which spaces out the IRQ lines of display-list entries that start close together (~30 cycles per entry from 8 up, every frame); the "Boss straight away" column predates both. The worst frames rose by 300-2,200 cycles; the biggest rise, level 2's, is the busiest wave frame paying for step 4.
 
 Since M6 the profile counts the player's collision checks (`INVINCIBLE` now only skips the dying), which is most of level 4's rise; the M5 figures left them out.
 
 - **No dropped frames** in gameplay or the ending: zero play overruns in all four levels and all four boss fights, and no sprite was ever dropped (up to 18 on screen). The only frames that run long are the deliberate screen builds with the display off.
-- **Headroom is about 1,250 cycles in the busiest frames** (a 4-row slice, 8 map chars unpacked, 17-18 sprites), in boss 1's fight (the longer M10 fights give its busy moments more chances to coincide).
+- **Headroom is about 600 cycles in the busiest frames** (a 4-row slice, 8 map chars unpacked, 17-18 sprites, in the busiest waves and boss fights). Before the landing's `mux_build` step 4 it was about 1,250.
 - **Sprites are the price of everything.** Each sprite on screen costs ~300 cycles a frame: ~150 in `mux_build` (keys, sort, list entry), ~100-150 in the multiplexer's IRQs, plus its own logic and collision tests. M6 had to pay for its bigger waves and boss: the score redraws at most one digit a frame (~360 cycles each), the collision loops test the boxes inline against a per-bullet top and left (~35 cycles a pair apart vertically), and boss 1 is 4 sprites, not 6 (everything but its tail fits the lower sprite row). A 6-part boss with 6 shots out overran.
 - **Formations and the 8-per-line limit:** a line abreast of 4 that fires together puts 4 planes and 4 shots in one 21-line band, plus the player's shots: more than 8, so sprites drop. Level 1's waves use echelons and spread V's instead (two rows between ranks). A boss's lower sprite row must start below line 68: the 4 HUD sprites hold their hardware sprites until line 65, and a reused one needs 3 lines (`MUX_SETUP`); `data/bosses.asm` checks this at assembly. Without a boss the bar's sprite is off and its list entry goes to the sorted sprites (M7), so 5 hardware sprites are free beside the HUD, where formations enter: 4 planes entering together plus a player bullet fit.
 - **M5's effects** cost little: animated chars ~150 cycles per char rewritten (at most 2 a frame; level 4's sea rewrites 2 every other frame), the fade ~200 on a step frame, the shake ~30 in the frame IRQ.

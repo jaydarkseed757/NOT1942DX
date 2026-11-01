@@ -58,6 +58,9 @@ pbullets_update
         lda player_state
         cmp #PS_ALIVE
         bne .done
+        lda lvl_state           ; and not while it lands (LEVEL CLEAR)
+        cmp #LS_CLEAR
+        beq .done
         lda input_new
         and #INP_FIRE
         beq .done

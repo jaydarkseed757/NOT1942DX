@@ -3,7 +3,8 @@
 ; =============================================================================
 ;
 ; FLOW   title --fire--> new_game --> level intro ("LEVEL n", 2.5 s)
-;        --> play --(stream reaches +boss_here)--> boss --> LEVEL CLEAR (3 s)
+;        --> play --(stream reaches +boss_here)--> boss --> LEVEL CLEAR: the
+;        ship lands on a carrier, to a fanfare (landing.asm, about 10 s)
 ;        --> next level intro ... after level 4: the ending (ending.asm)
 ; Score and lives carry over between levels. Losing the last life at any
 ; point goes to GAME OVER as before.
@@ -14,13 +15,13 @@
 ;             Once the last regular enemies have left the enemy slots the
 ;             level's boss flies in (boss.asm); when it is destroyed
 ;             (boss_state = BS_DONE) the level is clear.
-;   LS_CLEAR  "LEVEL CLEAR" in the HUD; scrolling and flying continue
+;   LS_CLEAR  the landing (landing.asm): the ship comes down on a carrier,
+;             then "LEVEL CLEAR" in the HUD; scrolling continues
 ;   LS_NEXT   set when LS_CLEAR runs out; the main loop switches level at the
 ;             start of the next frame (lower border), like gameover_enter
 ; =============================================================================
 
 INTRO_FRAMES        = 125       ; 2.5 s "LEVEL n / GET READY"
-CLEAR_FRAMES        = 150       ; 3 s "LEVEL CLEAR" before the next level
 
 LS_PLAY  = 0
 LS_BOSS  = 1
@@ -103,7 +104,21 @@ level_unpack
         lda #0
         sta st_left
         sta st_out
-        rts
+        sta lvl_row             ; the first row to scroll in: the bottom one
+        sta lvl_row+1
+!ifndef BOSS_TEST {
+        lda boss_now            ; boss practice (the title's keys 1-4): the
+        beq +                   ;   map starts at the boss loop instead, the
+}                               ;   scenery of a real fight (open water for
+        lda st_loop             ;   the landing after it). The loop is packed
+        sta st_src              ;   on its own, so the stream can start there.
+        lda st_loop+1           ;   (Test hook BOSS_TEST: always.)
+        sta st_src+1
+        lda lvl_boss
+        sta lvl_row
+        lda lvl_boss+1
+        sta lvl_row+1
++       rts
 
 !if (CHARSET + FIRST_TILE * 8) & $ff { !error "level chars must start on a page" }
 
@@ -273,29 +288,28 @@ level_update
 .started
         cmp #BS_DONE
         bne .done
-        lda #LS_CLEAR
-        sta lvl_state
-        lda #CLEAR_FRAMES
-        sta lvl_timer
-        jmp hud_show_clear
+        lda #LS_CLEAR           ; the boss is gone: the ship lands on a
+        sta lvl_state           ;   carrier (landing.asm), and LEVEL CLEAR
+        lda #LP_WAIT            ;   shows once it's down
+        sta land_phase
+        jsr mux_pins_changed    ; the boss's health bar goes now (the ship
+        lda #0                  ;   takes its slot when the landing starts,
+        sta spr_on + SLOT_HUD_BAR ; maybe after a respawn)
+!ifdef TEST_DIE_ON_CLEAR {
+        lda #TEST_DIE_ON_CLEAR  ; test hook (acme -DTEST_DIE_ON_CLEAR=n): the
+        sta lives               ;   player, down to n ships, is shot down
+        jmp player_die          ;   just as the boss goes
+}
+        rts
 
 .notboss
         cmp #LS_CLEAR
         bne .done
-        lda player_state        ; shot down during LEVEL CLEAR: hold the
-        bne .done               ;   countdown until the respawn. On the last
-                                ;   ship PS_GAMEOVER ends the game instead
-                                ;   (main loop), so lives can't go 0 -> $FF.
+        jsr land_update         ; the landing; LEVEL CLEAR counts down once
+        lda land_phase          ;   the ship is parked (nothing can hit it
+        cmp #LP_RIDE            ;   then: a ship shot down as the boss died
+        bne .done               ;   respawned in LP_WAIT)
         dec lvl_timer
-!ifdef TEST_DIE_ON_CLEAR {
-        lda lvl_timer           ; test hook (acme -DTEST_DIE_ON_CLEAR=n): with
-        cmp #40                 ;   40 frames of LEVEL CLEAR left (less than
-        bne +                   ;   the death animation) the player, down to
-        lda #TEST_DIE_ON_CLEAR  ;   n ships, is shot down
-        sta lives
-        jsr player_die
-+       lda lvl_timer
-}
         beq +
         lda lvl_timer           ; the last FADE_FRAMES: fade out
         cmp #FADE_FRAMES

@@ -77,10 +77,8 @@ CHASE_LINE0 = 48 + (FINE_STEPS-1) + 1 ; first line after row 0's badline at yscr
 PREFILL_OFS = (SCROLL_ROWS - 1) * COLS  ; offset of the bottom row
 
 scroll_init
-        lda #0
-        sta lvl_row
-        sta lvl_row+1           ; (wave_ptr: level_load; the map stream:
-                                ;   level_unpack)
+                                ; (lvl_row, wave_ptr: level_load; lvl_row
+                                ;   and the map stream: level_unpack)
 
         ; SCREEN_A, COLRAM and CRAM_SHADOW all start on a page boundary, so
         ; one row offset serves all three: only the high bytes differ.

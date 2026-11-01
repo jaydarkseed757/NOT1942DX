@@ -38,17 +38,27 @@
 ;   the same list again until a new one is committed, so pause (no
 ;   mux_build) and a late frame (the old list once more) both look right.
 ;
-; TIMING: mux_build ~600 cycles to sort + ~90 per slot drawn. The frame IRQ
+; TIMING: mux_build ~600 cycles to sort + ~90 per slot drawn (+ ~24 per
+; entry from 9 up, step 4). The frame IRQ
 ; writes the first 8 entries (~70 cycles each); mux_irq costs ~80 cycles per
 ; entry plus ~70 per IRQ. Writes for entry k land after entry k-8's last line,
 ; so a hardware sprite is never changed while it is being drawn.
-; KNOWN LIMIT: if several entries share nearly the same line, their writes
-; queue up (~80 cycles each), and an entry written after its first line has
-; passed is not shown that frame.
+; Several entries on nearly the same line queue up (~130 cycles a write),
+; so step 4 of mux_build moves the earlier ones' IRQ lines up, MUX_QUEUE
+; lines apart (e.g. the LEVEL CLEAR message's 4 sprites beside the landing's
+; carrier, landing.asm). KNOWN LIMIT: it can't move one before its hw
+; sprite's earlier user has finished; an entry written after its first line
+; has passed is not shown that frame.
 ; =============================================================================
 
 MUX_Y_OFF  = PLAY_Y_END         ; spr_y >= this: below the window, not drawn
 MUX_LEAD   = 4                  ; IRQ this many lines before an entry starts
+MUX_QUEUE  = 3                  ; TIMING: lines one queued write may take: an
+                                ;   entry's IRQ line is pulled up to this many
+                                ;   lines before the next entry's, so a run on
+                                ;   one line is written in time (~130 cycles
+                                ;   each; with 6 sprites stealing DMA cycles a
+                                ;   line gives the CPU ~45)
 MUX_SETUP  = 3                  ; ...but at least this many lines are needed
 SPR_HEIGHT = 21
 SPR_HEIGHT_EXP = 42
@@ -326,6 +336,33 @@ mux_build
         jmp .slot
 
 .listed sty mux_p_end
+
+        ; --- 4. runs of entries close together: from the last one back,
+        ; each IRQ line at least MUX_QUEUE lines before the next entry's,
+        ; but not before the entry's hw sprite is free (the end of entry
+        ; k - 8, the same bound step 3 used) ---
+        tya                     ; entries k = 8 .. last - 1 have a line
+        sec                     ;   and a next entry: count = entries - 9
+        sbc mux_p_base
+        sbc #9                  ; (carry still set: no borrow above)
+        bcc .pulled             ; 9 or fewer entries: nothing to space out
+        beq .pulled
+        tax                     ; X = how many
+        dey                     ; Y = entry k + 1, from the last
+.pull   lda l_line,y            ; the next entry's line - MUX_QUEUE
+        sec
+        sbc #MUX_QUEUE
+        bcc .pnext              ; (near the top: leave it)
+        cmp l_line-1,y
+        bcs .pnext              ; entry k is early enough already
+        cmp l_end-9,y           ; ...but not before entry k - 8 ends
+        bcs +
+        lda l_end-9,y
++       sta l_line-1,y
+.pnext  dey
+        dex
+        bne .pull
+.pulled ldy mux_p_end
         tya                     ; $D015 for the first 8 entries
         sec
         sbc mux_p_base

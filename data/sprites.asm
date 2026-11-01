@@ -1023,6 +1023,146 @@ PTR_EXPL_6 = SPR_PTR0 + (spr_expl_6 - SPRITES) / 64
         +spr_end
 
 ; -----------------------------------------------------------------------------
+; The landing after each boss (src/landing.asm). The ship shrinks a little as
+; it comes down onto the deck: 10x14, then 8x12, centred on the full-size
+; ship's middle so the half-X and Y stay the same.
+; -----------------------------------------------------------------------------
+spr_ship_s1
+PTR_SHIP_S1 = SPR_PTR0 + (spr_ship_s1 - SPRITES) / 64
+        +spr_begin
+        +spr "............"     ;  0
+        +spr "............"     ;  1
+        +spr "..d......d.."     ;  2
+        +spr ".ddd.ii.ddd."     ;  3
+        +spr ".wid.ii.wid."     ;  4
+        +spr ".iid.ww.iid."     ;  5
+        +spr ".wwwwiiwwww."     ;  6
+        +spr ".iiiiiiiiii."     ;  7
+        +spr "..diddddid.."     ;  8
+        +spr "..i..ii..i.."     ;  9
+        +spr "..i..dd..i.."     ; 10
+        +spr "..i......i.."     ; 11
+        +spr "..i......i.."     ; 12
+        +spr ".wid....wid."     ; 13
+        +spr ".wiiiiiiiid."     ; 14
+        +spr "..dddddddd.."     ; 15
+        +spr "............"     ; 16
+        +spr "............"     ; 17
+        +spr "............"     ; 18
+        +spr "............"     ; 19
+        +spr "............"     ; 20
+        +spr_end
+
+spr_ship_s2
+PTR_SHIP_S2 = SPR_PTR0 + (spr_ship_s2 - SPRITES) / 64
+        +spr_begin
+        +spr "............"     ;  0
+        +spr "............"     ;  1
+        +spr "............"     ;  2
+        +spr "...d....d..."     ;  3
+        +spr "..ddd..ddd.."     ;  4
+        +spr "...i.ww.i..."     ;  5
+        +spr "..wwwiiwww.."     ;  6
+        +spr "..iiiiiiii.."     ;  7
+        +spr "...iddddi..."     ;  8
+        +spr "...i.dd.i..."     ;  9
+        +spr "...i....i..."     ; 10
+        +spr "...i....i..."     ; 11
+        +spr "..wid..wid.."     ; 12
+        +spr "..wiiiiiid.."     ; 13
+        +spr "...dddddd..."     ; 14
+        +spr "............"     ; 15
+        +spr "............"     ; 16
+        +spr "............"     ; 17
+        +spr "............"     ; 18
+        +spr "............"     ; 19
+        +spr "............"     ; 20
+        +spr_end
+
+; -----------------------------------------------------------------------------
+; The aircraft carrier the ship lands on: three X+Y expanded sprites
+; one above the other (48x126 px), bow at the top. Deck 'i' (its colour in
+; landing.asm), markings and island white, hull edge and shadow dark grey.
+; -----------------------------------------------------------------------------
+spr_carrier_bow
+PTR_CARRIER = SPR_PTR0 + (spr_carrier_bow - SPRITES) / 64
+        +spr_begin
+        +spr "............"     ;  0
+        +spr ".....dd....."     ;  1
+        +spr "....dwwd...."     ;  2
+        +spr "....diid...."     ;  3
+        +spr "...diiiid..."     ;  4
+        +spr "...diiiid..."     ;  5
+        +spr "..diiiiiid.."     ;  6
+        +spr "..diiiiiid.."     ;  7
+        +spr ".diiiiiiiid."     ;  8
+        +spr ".diiiiiiiid."     ;  9
+        +spr "diiiiiiiiiid"     ; 10
+        +spr "diiiiiiiiiid"     ; 11
+        +spr "diiiiwwiiiid"     ; 12
+        +spr "diiiiiiiiiid"     ; 13
+        +spr "diiiiiiiiiid"     ; 14
+        +spr "diiiiwwiiiid"     ; 15
+        +spr "diiiiiiiiiid"     ; 16
+        +spr "diiiiiiiiiid"     ; 17
+        +spr "diiiiwwiiiid"     ; 18
+        +spr "diiiiiiiiiid"     ; 19
+        +spr "diiiiiiiiiid"     ; 20
+        +spr_end
+
+; Midships: the island on the right (starboard).
+spr_carrier_mid
+        +spr_begin
+        +spr "diiiiwwiiiid"     ;  0
+        +spr "diiiiiiiiiid"     ;  1
+        +spr "diiiiiiiwwwd"     ;  2
+        +spr "diiiiwwiwddd"     ;  3
+        +spr "diiiiiiiwddd"     ;  4
+        +spr "diiiiiiiwddd"     ;  5
+        +spr "diiiiwwiwddd"     ;  6
+        +spr "diiiiiiiwddd"     ;  7
+        +spr "diiiiiiiwddd"     ;  8
+        +spr "diiiiwwiwddd"     ;  9
+        +spr "diiiiiiidddd"     ; 10
+        +spr "diiiiiiiiiid"     ; 11
+        +spr "diiiiwwiiiid"     ; 12
+        +spr "diiiiiiiiiid"     ; 13
+        +spr "diiiiiiiiiid"     ; 14
+        +spr "diiiiwwiiiid"     ; 15
+        +spr "diiiiiiiiiid"     ; 16
+        +spr "diiiiiiiiiid"     ; 17
+        +spr "diiiiwwiiiid"     ; 18
+        +spr "diiiiiiiiiid"     ; 19
+        +spr "diiiiiiiiiid"     ; 20
+        +spr_end
+
+; Aft: the landing area, with its arrester wires, and the stern.
+spr_carrier_aft
+        +spr_begin
+        +spr "diiiiwwiiiid"     ;  0
+        +spr "diiiiiiiiiid"     ;  1
+        +spr "diiiiiiiiiid"     ;  2
+        +spr "diiiiwwiiiid"     ;  3
+        +spr "diiiiiiiiiid"     ;  4
+        +spr "diiiiiiiiiid"     ;  5
+        +spr "diiiiwwiiiid"     ;  6
+        +spr "diiiiiiiiiid"     ;  7
+        +spr "dwiwiwiwiwid"     ;  8
+        +spr "diiiiiiiiiid"     ;  9
+        +spr "diiiiiiiiiid"     ; 10
+        +spr "dwiwiwiwiwid"     ; 11
+        +spr "diiiiiiiiiid"     ; 12
+        +spr "diiiiiiiiiid"     ; 13
+        +spr "dwiwiwiwiwid"     ; 14
+        +spr "diiiiiiiiiid"     ; 15
+        +spr "diwwwwwwwwid"     ; 16
+        +spr "diiiiiiiiiid"     ; 17
+        +spr "dddddddddddd"     ; 18
+        +spr ".dddddddddd."     ; 19
+        +spr "............"     ; 20
+        +spr_end
+
+; -----------------------------------------------------------------------------
 ; HUD shapes: 8 blank sprites that src/hud.asm draws into at run time (hires,
 ; glyphs copied from the charset): score (2), lives, boss bar, message (4).
 ; -----------------------------------------------------------------------------
