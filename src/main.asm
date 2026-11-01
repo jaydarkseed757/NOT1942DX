@@ -42,6 +42,9 @@ entry
 !ifdef TURBO {
         jsr turbo_detect        ; the MiSTer turbo build: turbo on, or wait
 }
+!ifdef ULTIMATE {
+        jsr t3_install          ; the 3D title's renderer, out of the RING
+}
         jsr music_init          ; (before cli: the IRQ calls the player)
         jsr init_irq            ; raster IRQ at IRQ_LINE
 !ifdef PROFILE {
@@ -211,6 +214,9 @@ debug_hex
 !ifdef TURBO {
 !source "src/parallax.asm"      ; the MiSTer turbo build only (its boot
 }                               ;   check, turbo.asm, is in the map ring)
+!ifdef ULTIMATE {
+!source "src/title3d.asm"       ; the Ultimate build's 3D title (its
+}                               ;   renderer is staged in the map ring too)
 
 code_end
 !if code_end > VIC_BASE {
@@ -249,8 +255,8 @@ landing_end                     ;   in the spare sprite space too)
 !source "data/parallax.asm"     ; the turbo build's parallax cloud
 }                               ;   (tools/art/parallax_cloud.py)
 data3_end
-!if data3_end > RING {
-        !error "DATA3 overflows into the map ring"
+!if data3_end > DATA3_BASE + DATA3_SIZE {
+        !error "DATA3 overflows its 4 KB"
 }
 
 * = code_end                    ; the landing's fanfare: data, in the code
@@ -267,6 +273,15 @@ tune_end                        ;   DATA3 is full, and its DATA2 must end by
 !source "src/turbo.asm"         ;   before the title, and the first level's
 turbo_end                       ;   map overwrites it
 !if turbo_end > RING + RING_SIZE { !error "turbo.asm overflows the map ring" }
+!ifdef ULTIMATE {
+t3_stage                        ; the 3D title's renderer, copied to T3_BASE
+!pseudopc T3_BASE {             ;   at boot (t3_install), where it runs
+!source "src/title3d_core.asm"
+}
+t3_stage_end
+!if t3_stage_end > RING + RING_SIZE { !error "the 3D title's renderer overflows the map ring" }
+!if t3_tables_end > T3_BASE + $1000 { !error "the 3D title's renderer and tables overflow the RAM under the I/O area" }
+}
 }
 
 * = DATA2_BASE                  ; waves, bosses, level packs

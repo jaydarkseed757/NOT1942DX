@@ -138,6 +138,9 @@ restore_quads
 ; Music is silent here; the level's song starts with the level.
 ; -----------------------------------------------------------------------------
 level_intro_enter
+!ifdef ULTIMATE {
+        jsr t3_off              ; (from the 3D title: its split IRQ off)
+}
         jsr level_load
         jsr init_video          ; display off, clean screens, level palette
         jsr hud_draw_score

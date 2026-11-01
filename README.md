@@ -87,6 +87,18 @@ A second build is made for the **MiSTer** FPGA's C64 core. It uses the core's tu
 
 Set **Turbo mode** to **C128** or **Smart** and **Turbo speed** to 2x, 3x or 4x in the OSD (F12). The game checks at start-up: with turbo off it says what to set, and starts by itself once turbo is on. The title shows the speed it found. It isn't for a real C128, whose graphics chip shows no picture at 2 MHz: it says so and asks for the standard version. The files are `build/not1942dx-turbo.d64`, `.prg` and `.crt`; load the disk with `LOAD"NOT 1942 DX T",8,1`.
 
+### Ultimate version
+
+A third build is the turbo version plus a **real-time 3D title**, for very fast machines such as the **C64 Ultimate / Ultimate 64** at its top CPU speed. "NOT 1942 DX" becomes solid extruded letters, swinging in perspective and redrawn every frame on a hires bitmap, with the title's air show flying over it.
+
+<p>
+  <img src="screenshots/28-ultimate-3d-logo.png" width="640" alt="The Ultimate build's 3D title logo">
+</p>
+
+*The 3D logo, decoded from the C64's bitmap memory. VICE can't show this title at full speed.*
+
+At start-up the game draws one test frame and times it. If the machine can draw a frame in time, the 3D title switches on; otherwise you get the normal title, so it's safe on slower machines. Everything after the title is the turbo version, so the CPU must run at 2x or more. The files are `build/not1942dx-ultimate.d64`, `.prg` and `.crt`; load the disk with `LOAD"NOT 1942 DX U",8,1`.
+
 ## Building
 
 You need [ACME](https://sourceforge.net/projects/acme-crossass/) 0.97, [VICE](https://vice-emu.sourceforge.io/) (`x64sc`, `c1541`), [Exomizer](https://bitbucket.org/magli143/exomizer/wiki/Home) 3.1.2 and Python 3 with Pillow. On macOS:
@@ -104,13 +116,15 @@ make run        # run it in VICE (x64sc, PAL)
 make release    # what ships: the compressed .prg, the .d64 and the .crt
 make turbo      # the MiSTer turbo build: build/not1942dx-turbo.{prg,d64,crt}
 make run-turbo  # the turbo build in VICE's SuperCPU emulator (xscpu64)
+make ultimate-build  # the Ultimate build: build/not1942dx-ultimate.{prg,d64,crt}
+make ultimate   # build it and send it to a C64 Ultimate over its REST API (ULT_HOST=...)
 make DEBUG=1 run  # with a border bar showing the time each frame takes
 make clean
 ```
 
 The level pictures are turned into packed data at build time, so a fresh checkout needs nothing but the tools above.
 
-To make a release archive, run `./release.sh`. It builds both versions from clean and checks each compressed program against its uncompressed build. It then writes `dist/not1942dx-<version>.zip` with the disk, program and cartridge files, the README, the licence and checksums. `./release.sh --publish` also creates the GitHub release.
+To make a release archive, run `./release.sh`. It builds all three versions from clean and checks each compressed program against its uncompressed build. It then writes `dist/not1942dx-<version>.zip` with the disk, program and cartridge files, the README, the licence and checksums. `./release.sh --publish` also creates the GitHub release.
 
 ## How it's put together
 
@@ -120,7 +134,8 @@ To make a release archive, run `./release.sh`. It builds both versions from clea
 | `data/` | Levels, waves, enemy paths, bosses, sprites, music, sound effects, title and ending |
 | `data/levels/` | Each level as a PNG picture with a JSON file of its colours, boss row and animations |
 | `tools/` | Python tools: `png2level.py`, `png2sprites.py`, and the checkers `check_waves.py`, `check_map.py` and `profile.py` |
-| `tools/art/` | The scripts that drew the level pictures and the turbo build's cloud |
+| `tools/art/` | The scripts that drew the level pictures, the turbo build's cloud and the 3D logo's model |
+| `tools/run_ultimate.sh` | Sends a build to a C64 Ultimate and starts it (`make ultimate`) |
 | `screenshots/` | Screenshots of the whole game |
 | `PLAN.md` | The plan the remake was built to, milestone by milestone |
 | `BUDGET.MD` | Measured CPU, memory and data budgets, and how to re-measure them |
@@ -132,6 +147,7 @@ A few engine notes:
 - **Levels:** each level is a picture, cut into up to 192 unique characters, with an LZ-packed character map that's unpacked a row at a time as it scrolls in.
 - **Sprites:** game code writes virtual sprite slots. The multiplexer sorts them by Y every frame and reuses the 8 hardware sprites with raster interrupts.
 - **Collisions** are software box tests.
+- **The 3D title** (Ultimate build) runs from the RAM under the I/O chips. Each frame it projects the logo's column edges in perspective, then fills the visible faces 8 pixels at a time down the bitmap's byte columns, while the beam is below the logo.
 - **Data checks:** waves, paths, music and boss scripts are written with ACME macros that check the data while it assembles. `tools/check_waves.py` replays every enemy path to check the sprite budget.
 
 ## Licence

@@ -498,9 +498,10 @@ mux_irq
         pha
         tya
         pha
+        +irq_io_in              ; (the Ultimate build: I/O in, $01 saved)
         cld                     ; (the main code may be mid-BCD add)
         tsx                     ; a BRK lands here too while this vector is set
-        lda $0104,x
+        lda IRQ_P,x
         and #%00010000
         beq +
         jmp brk_trap

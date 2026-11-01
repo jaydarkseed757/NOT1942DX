@@ -101,6 +101,9 @@ title_enter
         sta spr_on + SLOT_PLAYER
         jsr mux_build
 
+!ifdef ULTIMATE {
+        jsr t3_enter            ; the 3D logo, if the machine is fast enough
+}
         lda #GM_TITLE
         sta game_mode
         lda #SONG_TITLE
@@ -117,7 +120,15 @@ title_update
         jmp new_game            ; test hook (acme -DAUTOSTART): skip the title
 }
         jsr mux_build           ; last frame's positions, shown next frame
+!ifdef ULTIMATE {
+        lda t3_on               ; the 3D title: draw the logo first (it waits
+        beq +                   ;   for the beam to leave its band)
+        jsr t3_frame
++
+}
+!ifndef T3_NOAIR {
         jsr title_flyby
+}
 
         lda frame_count         ; ship bobs gently: 16-step sine, 4 frames/step
         lsr

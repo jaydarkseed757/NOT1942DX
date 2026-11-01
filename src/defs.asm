@@ -31,6 +31,7 @@
 ;                            after the shapes, ending_fx.asm's code (the
 ;                            ending's show; fx_end), in shape space no
 ;                            sprite uses
+;   (The Ultimate build swaps DATA3 and RING: RING $6000, DATA3 $7000.)
 ;   $6000-$6FFF  DATA3     - music, songs, sound effects, title screen data,
 ;                            the ending's text, the aiming tables: data that
 ;                            doesn't grow (the VIC never looks there)
@@ -120,9 +121,18 @@ SCREEN_B    = $4400
 CHARSET     = $4800
 SPRITES     = $5000
 SPRITES_END = $6000         ; 64 shapes; the rest of the bank's free RAM is
-DATA3_BASE  = $6000         ;   DATA3
+!ifdef ULTIMATE {               ;   DATA3 and the RING:
+!ifndef TURBO { !error "the Ultimate build is the turbo build plus its 3D title: give -DTURBO=1 -DULTIMATE=1" }
+DATA3_BASE  = $7000         ; the Ultimate build swaps them: its 3D title
+RING        = $6000         ;   (title3d.asm) draws a hires bitmap at $6000,
+                            ;   whose top 12 rows ($6000-$6EFF) then lie in
+                            ;   the RING, free while the title shows
+} else {
+DATA3_BASE  = $6000
 RING        = $7000         ; 4 KB aligned: the unpacker wraps on the high byte
+}
 RING_SIZE   = $1000
+DATA3_SIZE  = $1000
 DATA2_BASE  = $8000
 DATA2_END   = $d000             ; I/O starts here; a PRG can't load past it
 

@@ -25,12 +25,16 @@
 #                 VICE has to the MiSTer's turbo (which it can't emulate: its
 #                 2x-4x and C128-mode register need the real core). Real time
 #                 (PAL, no warp), injected straight into RAM
-#   make ultimate send build/not1942dx.prg to the C64 Ultimate / Ultimate 64
-#                 over its REST API and RUN it (tools/run_ultimate.sh;
-#                 ULT_HOST, ULT_PASSWORD, ULT_FILE=build/not1942dx.crt
-#                 starts the cartridge, ULT_FILE=build/not1942dx.d64 mounts
-#                 the disk, ULT_FILE=build/not1942dx-turbo.prg the turbo
-#                 version, ULT_DRY=1 only prints)
+#   make ultimate-build  the Ultimate build (-DTURBO=1 -DULTIMATE=1): the
+#                 turbo build plus a real-time 3D title logo for very fast
+#                 CPUs (src/title3d.asm; 56x and up, else the normal title):
+#                 build/not1942dx-ultimate.{prg,d64,crt}
+#   make ultimate build the Ultimate build and send build/not1942dx-ultimate.prg
+#                 to the C64 Ultimate / Ultimate 64 over its REST API and RUN
+#                 it (tools/run_ultimate.sh; ULT_HOST, ULT_PASSWORD,
+#                 ULT_FILE=build/not1942dx.prg sends another build, a .crt
+#                 starts as a cartridge, a .d64 is mounted; ULT_DRY=1 only
+#                 prints)
 #   make gen      only build the level packs (build/gen/), for test builds
 #   make clean    remove build outputs
 #
@@ -55,6 +59,11 @@ TCRUNCHED := build/not1942dx-turbo.prg
 TD64 := build/not1942dx-turbo.d64
 TCRT := build/not1942dx-turbo.crt
 TSYM := build/not1942dx-turbo-dev.sym
+UPRG := build/not1942dx-ultimate-dev.prg
+UCRUNCHED := build/not1942dx-ultimate.prg
+UD64 := build/not1942dx-ultimate.d64
+UCRT := build/not1942dx-ultimate.crt
+USYM := build/not1942dx-ultimate-dev.sym
 TPPRG := build/not1942dx-turbo-profile-dev.prg
 TPD64 := build/not1942dx-turbo-profile.d64
 
@@ -74,7 +83,7 @@ ifdef DEBUG
 ACMEFLAGS += -DDEBUG=1
 endif
 
-.PHONY: all gen crunch d64 crt release turbo turbo-profile run run-d64 run-crt run-turbo ultimate clean
+.PHONY: all gen crunch d64 crt release turbo turbo-profile ultimate-build run run-d64 run-crt run-turbo ultimate clean
 
 all: $(PRG)
 
@@ -110,6 +119,21 @@ $(CRT): $(PRG) src/crt.asm src/defs.asm
 release: $(D64) $(CRUNCHED) $(CRT)
 
 turbo: $(TD64) $(TCRUNCHED) $(TCRT)
+
+ultimate-build: $(UD64) $(UCRUNCHED) $(UCRT)
+
+$(UPRG): $(SRC) $(GEN) Makefile | build
+	$(ACME) -f cbm --cpu 6502 -v1 -DTURBO=1 -DULTIMATE=1 -l $(USYM) -o $@ src/main.asm
+
+$(UCRUNCHED): $(UPRG)
+	$(EXOMIZER) sfx sys -x1 -q -o $@ $<
+
+$(UD64): $(UCRUNCHED)
+	rm -f $@
+	$(C1541) -format "not 1942 dx u,jd" d64 $@ -write $(UCRUNCHED) "not 1942 dx u"
+
+$(UCRT): $(UPRG) src/crt.asm src/defs.asm
+	$(ACME) -f plain -DTURBO=1 -DULTIMATE=1 -DPRG_SIZE=$$(wc -c < $(UPRG) | tr -d ' ') -o $@ src/crt.asm
 
 $(TPRG): $(SRC) $(GEN) Makefile | build
 	$(ACME) -f cbm --cpu 6502 -v1 -DTURBO=1 -l $(TSYM) -o $@ src/main.asm
@@ -154,7 +178,7 @@ run-turbo: $(TPRG)
 # Run on the C64 Ultimate: the PRG is DMA-loaded and RUN over the REST API
 # (nothing written to its storage). ULT_FILE picks another build file: a .crt
 # is started as a cartridge, a .d64 is mounted on drive A and the machine reset.
-ULT_FILE ?= $(CRUNCHED)
+ULT_FILE ?= $(UCRUNCHED)
 ultimate: $(ULT_FILE)
 	ULT_FILE="$(ULT_FILE)" tools/run_ultimate.sh
 

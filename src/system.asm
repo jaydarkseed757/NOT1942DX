@@ -83,6 +83,23 @@ init_irq
         rts
 
 !zone irq
+; +irq_io_in: the Ultimate build's 3D title runs its renderer from the RAM
+; under the I/O area, with the I/O switched out ($01 = $34; title3d.asm).
+; Every IRQ handler therefore saves $01 and switches the I/O in, right
+; after saving the registers; irq_exit puts $01 back. Other builds: nothing.
+!macro irq_io_in {
+!ifdef ULTIMATE {
+        lda CPU_PORT
+        pha
+        lda #MAP_ALLRAM_IO
+        sta CPU_PORT
+}
+}
+!ifdef ULTIMATE {
+IRQ_P = $0105                   ; the pushed P, past A, X, Y and $01
+} else {
+IRQ_P = $0104                   ; the pushed P, past A, X and Y
+}
 ; -----------------------------------------------------------------------------
 ; irq_handler: frame IRQ at raster line IRQ_LINE (lower border).
 ; KERNAL is banked out, so this is entered directly from $FFFE. We save
@@ -96,6 +113,7 @@ irq_handler
         pha
         tya
         pha
+        +irq_io_in              ; (the Ultimate build: I/O in, $01 saved)
         cld                     ; the 6502 keeps D on interrupt; the main code
                                 ;   may be mid-BCD add (score.asm). RTI restores P.
 !ifdef PROFILE {
@@ -108,7 +126,7 @@ irq_handler
         ; If B is set we got here by executing a BRK (usually a $00 byte from
         ; jumping into bad memory): halt visibly instead of faking a frame.
         tsx
-        lda $0104,x
+        lda IRQ_P,x
         and #%00010000          ; B flag
         bne brk_trap
 
@@ -139,6 +157,12 @@ irq_frame                       ; (mux_irq jumps here if it ran past line 251)
         sta VIC_CTRL2
 ++       jsr mux_frame           ; sprites: the first 8, and the IRQs for the
                                 ;   rest (mux.asm)
+!ifdef ULTIMATE {
+        lda t3_on               ; the 3D title: bitmap mode for the band, and
+        beq +                   ;   its split IRQ (title3d.asm; it has at most
+        jsr t3_irq_frame        ;   8 sprites, so mux_frame armed no IRQ)
++
+}
         inc frame_count
         lda #1
         sta frame_flag          ; release the main loop
@@ -163,6 +187,10 @@ irq_frame                       ; (mux_irq jumps here if it ran past line 251)
 }
 
 irq_exit                        ; (also mux_irq's way out)
+!ifdef ULTIMATE {
+        pla                     ; the $01 the interrupted code had (I/O out,
+        sta CPU_PORT            ;   if it was the 3D title's renderer)
+}
         pla
         tay
         pla

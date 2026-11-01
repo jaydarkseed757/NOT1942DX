@@ -11,7 +11,8 @@
 #
 # The version defaults to the one on the title screen (data/title.asm).
 # The archive holds the standard build (.d64, .prg, .crt), the MiSTer turbo
-# build (turbo/), README.md, LICENSE, BUILD.txt and SHA256SUMS.
+# build (turbo/), the Ultimate build (ultimate/), README.md, LICENSE,
+# BUILD.txt and SHA256SUMS.
 # =============================================================================
 set -euo pipefail
 
@@ -56,7 +57,7 @@ commit=$(git rev-parse --short HEAD)
 # --- build everything from clean ---
 echo "== building NOT 1942 DX $version from $commit"
 make clean >/dev/null
-make release turbo
+make release turbo ultimate-build
 
 # --- check: each compressed program must unpack to its dev build byte for byte ---
 tmp=$(mktemp -d)
@@ -68,13 +69,15 @@ check_unpack() {
 }
 check_unpack build/not1942dx.prg       build/not1942dx-dev.prg
 check_unpack build/not1942dx-turbo.prg build/not1942dx-turbo-dev.prg
+check_unpack build/not1942dx-ultimate.prg build/not1942dx-ultimate-dev.prg
 
 # --- pack ---
 name="not1942dx-$version"
 stage="$tmp/$name"
-mkdir -p "$stage/turbo" dist
+mkdir -p "$stage/turbo" "$stage/ultimate" dist
 cp build/not1942dx.d64 build/not1942dx.prg build/not1942dx.crt "$stage/"
 cp build/not1942dx-turbo.d64 build/not1942dx-turbo.prg build/not1942dx-turbo.crt "$stage/turbo/"
+cp build/not1942dx-ultimate.d64 build/not1942dx-ultimate.prg build/not1942dx-ultimate.crt "$stage/ultimate/"
 cp README.md LICENSE "$stage/"
 cat > "$stage/BUILD.txt" <<EOF
 NOT 1942 DX $version by JDC
@@ -89,8 +92,15 @@ MiSTer turbo version (C64 core, Turbo mode C128 or Smart, 2x-4x):
   turbo/not1942dx-turbo.d64   LOAD"NOT 1942 DX T",8,1 then RUN
   turbo/not1942dx-turbo.prg
   turbo/not1942dx-turbo.crt
+
+Ultimate version (the turbo version plus a real-time 3D title logo, for
+very fast machines such as the C64 Ultimate / Ultimate 64 at its top CPU
+speed; slower machines get the normal title):
+  ultimate/not1942dx-ultimate.d64   LOAD"NOT 1942 DX U",8,1 then RUN
+  ultimate/not1942dx-ultimate.prg
+  ultimate/not1942dx-ultimate.crt
 EOF
-(cd "$stage" && shasum -a 256 *.d64 *.prg *.crt turbo/* > SHA256SUMS)
+(cd "$stage" && shasum -a 256 *.d64 *.prg *.crt turbo/* ultimate/* > SHA256SUMS)
 
 archive="dist/$name.zip"
 rm -f "$archive"
@@ -107,7 +117,7 @@ if [ "$publish" = 1 ]; then
         && die "tag $tag already exists on GitHub"
     gh release create "$tag" "$archive" --target "$(git rev-parse HEAD)" \
         --title "NOT 1942 DX $version" \
-        --notes "NOT 1942 DX $version for the Commodore 64 (PAL), plus the MiSTer turbo version. See BUILD.txt in the archive for which file is which."
+        --notes "NOT 1942 DX $version for the Commodore 64 (PAL), plus the MiSTer turbo version and the Ultimate version with a 3D title. See BUILD.txt in the archive for which file is which."
     echo "== published GitHub release $tag"
 elif [ "$dirty" = 1 ]; then
     echo
