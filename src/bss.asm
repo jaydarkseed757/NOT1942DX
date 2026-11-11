@@ -82,6 +82,8 @@ boss_pdy    = BSS_PTR : +bss BOSS_MAX_PARTS ; pixels
 
 ; ---- level map (scroll.asm, level.asm) ----
 row_buf     = BSS_PTR : +bss COLS       ; the char row being scrolled in
+row_col_a   = BSS_PTR : +bss COLS       ; its chars' colour RAM values, for a step
+row_col_b   = BSS_PTR : +bss COLS       ;   that builds SCREEN_B (a) / SCREEN_A (b)
 
 ; ---- animated chars (anim.asm), one byte per animation ----
 anim_count  = BSS_PTR : +bss 1

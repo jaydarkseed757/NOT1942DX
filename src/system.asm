@@ -349,6 +349,8 @@ prof_end
         bcc +++
 +       sta prof_play+1
         stx prof_play
+        lda scroll_fine         ; (which scroll step it was: 0-7)
+        sta prof_fine
 +++     cmp prof_main+1
         bcc ++
         bne +
@@ -439,6 +441,7 @@ prof_over_play !byte 0
 prof_ovplay !byte 0
 prof_late   !byte 0
 prof_play   !word 0
+prof_fine   !byte 0
 }
 
 !zone wait_frame

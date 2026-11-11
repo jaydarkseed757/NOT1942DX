@@ -57,13 +57,13 @@ def main():
     try:
         mon.cmd(f"break {s['prof_reset']:04x}")
         print(f"{'part':14} {'play':>6} {'any':>6} {'irq':>5} "
-              f"{'over':>5} {'play_over':>9} {'late':>5} {'spr':>4} {'drops':>6}")
+              f"{'over':>5} {'play_over':>9} {'late':>5} {'spr':>4} {'drops':>6} {'fine':>5}")
         w, b = (lambda n: mon.word(s[n])), (lambda n: mon.peek(s[n])[0])
 
         def row(name):
             print(f"{name:14} {w('prof_play'):6} {w('prof_main'):6} "
                   f"{w('prof_irq'):5} {b('prof_over'):5} {b('prof_over_play'):9} "
-                  f"{b('prof_late'):5} {b('prof_maxspr'):4} {w('prof_drops'):6}", flush=True)
+                  f"{b('prof_late'):5} {b('prof_maxspr'):4} {w('prof_drops'):6} {b('prof_fine'):5}", flush=True)
 
         # Each stop is at prof_reset: name the part that just ended from the
         # game state (see the callers of prof_reset).

@@ -16,7 +16,8 @@
 ;   whole window, so the top and bottom edges never show a gap.
 ;
 ;   The hidden (back) buffer is built in 6 slices, one per frame (f = 1-6).
-;   The same slices build CRAM_SHADOW, the colour RAM the back buffer needs:
+;   The same slices shift CRAM_SHADOW down a row (see the slice builders): it
+;   becomes the colour RAM the back buffer needs:
 ;   each char code has its own colour RAM value (CHAR_COL).
 ;
 ; COLOUR RAM
@@ -77,6 +78,10 @@ CHASE_LINE0 = 48 + (FINE_STEPS-1) + 1 ; first line after row 0's badline at yscr
 PREFILL_OFS = (SCROLL_ROWS - 1) * COLS  ; offset of the bottom row
 
 scroll_init
+        lda #<row_col_a         ; the rows unpacked here put their colours
+        sta decode_col+1        ;   in row_col_a: the first step builds
+        lda #>row_col_a         ;   SCREEN_B (front = A) and reads them there
+        sta decode_col+2
                                 ; (lvl_row, wave_ptr: level_load; lvl_row
                                 ;   and the map stream: level_unpack)
 
@@ -175,6 +180,11 @@ scroll_update
         bne +                   ;   next row can start
         lda #0
         sta st_out
+        ldx front_buf           ; its colours: for the next step, which
+        lda .rcol_lo,x          ;   builds the other buffer (front = A now:
+        sta decode_col+1        ;   row_col_b, and the other way round)
+        lda .rcol_hi,x
+        sta decode_col+2
 +       lda scroll_fine
         cmp #6                  ; f = 1-5: 8 more of its chars
         bcs .next
@@ -210,6 +220,8 @@ scroll_update
         cli
         sta scroll_chase        ; scroll_colour runs at the end of this frame
         rts
+.rcol_lo !byte <row_col_b, <row_col_a
+.rcol_hi !byte >row_col_b, >row_col_a
 
 !zone scroll_colour
 ; -----------------------------------------------------------------------------
@@ -411,8 +423,10 @@ next_record
 !zone decode_row
 ; -----------------------------------------------------------------------------
 ; decode_row: unpack a whole row into row_buf. decode_rest: the rest of it.
-; decode_some: up to 8 more of its chars. (st_out counts them.)
-; TIMING: ~45 cycles per char. Clobber A, X, Y.
+; decode_some: up to 8 more of its chars. (st_out counts them.) Each char's
+; colour RAM value goes into row_col_a or row_col_b (decode_col's address,
+; set by scroll_init and scroll_update), for the shadow's row 0 (slice 5).
+; TIMING: ~56 cycles per char. Clobber A, X, Y.
 ; -----------------------------------------------------------------------------
 decode_row
         lda #0
@@ -433,6 +447,10 @@ decode_some
         bcs +
         jsr st_byte
         sta row_buf,x
+        tay
+        lda CHAR_COL,y
+decode_col
+        sta row_col_a,x         ; (self-modified: row_col_a / row_col_b)
         inx
         bne -
 +       stx st_out
@@ -556,12 +574,22 @@ d018_tab
         !byte D018_A, D018_B
 
 ; -----------------------------------------------------------------------------
-; Unrolled slice builders, one column (Y) per loop pass. For each row r of
-; the slice: dst row r <- src row r-1 (row 0: the new pattern), and
-; CRAM_SHADOW row r <- CHAR_COL of that char.
-; TIMING: 20 cycles per char (21 for row 0) + 5 per column.
+; Unrolled slice builders, one column (Y) per loop pass. Each slice does two
+; things:
+;   screen rows .first-.last: dst row r <- src row r-1 (row 0: row_buf)
+;   CRAM_SHADOW rows .cfirst-.clast: row r <- row r-1 (row 0: .rcol, the
+;     new row's colours, put there as it was unpacked: decode_row), IN
+;     PLACE, so from the bottom up: within a slice from .clast down, and
+;     across the slices from rows 21-24 (slice 0) to rows 0-4 (slice 5). At
+;     f = 0 the shadow holds the front buffer's colours (the chase and
+;     cram_late have copied them out), so shifting it down a row gives the
+;     back buffer's. Nothing else may write CRAM_SHADOW in play.
+; TIMING: 9 cycles per char for a screen row, 9 for a shadow row, + 5 per
+; column: 4 + 4 rows ~3,100 cycles (slices 0-4), 5 + 5 rows ~3,800 (slice 5,
+; on f = 6, which unpacks no chars). Before, with the colours looked up per
+; char (CHAR_COL), a 4-row slice took ~3,400 and the 5-row one ~4,200.
 ; -----------------------------------------------------------------------------
-!macro slice .src, .dst, .first, .last {
+!macro slice .src, .dst, .first, .last, .cfirst, .clast, .rcol {
         ldy #COLS-1
 -       !for .r, .first, .last {
         !if .r = 0 {
@@ -570,24 +598,30 @@ d018_tab
         lda .src + (.r-1)*COLS,y
         }
         sta .dst + .r*COLS,y
-        tax
-        lda CHAR_COL,x
-        sta CRAM_SHADOW + .r*COLS,y
+        }
+        !for .i, 0, .clast - .cfirst {
+        !set .c = .clast - .i
+        !if .c = 0 {
+        lda .rcol,y
+        } else {
+        lda CRAM_SHADOW + (.c-1)*COLS,y
+        }
+        sta CRAM_SHADOW + .c*COLS,y
         }
         dey
         bpl -
         rts
 }
 
-copy_ab_0       +slice SCREEN_A, SCREEN_B, 0, 3
-copy_ab_1       +slice SCREEN_A, SCREEN_B, 4, 7
-copy_ab_2       +slice SCREEN_A, SCREEN_B, 8, 11
-copy_ab_3       +slice SCREEN_A, SCREEN_B, 12, 15
-copy_ab_4       +slice SCREEN_A, SCREEN_B, 16, 19
-copy_ab_5       +slice SCREEN_A, SCREEN_B, 20, 24
-copy_ba_0       +slice SCREEN_B, SCREEN_A, 0, 3
-copy_ba_1       +slice SCREEN_B, SCREEN_A, 4, 7
-copy_ba_2       +slice SCREEN_B, SCREEN_A, 8, 11
-copy_ba_3       +slice SCREEN_B, SCREEN_A, 12, 15
-copy_ba_4       +slice SCREEN_B, SCREEN_A, 16, 19
-copy_ba_5       +slice SCREEN_B, SCREEN_A, 20, 24
+copy_ab_0       +slice SCREEN_A, SCREEN_B, 0, 3, 21, 24, row_col_a
+copy_ab_1       +slice SCREEN_A, SCREEN_B, 4, 7, 17, 20, row_col_a
+copy_ab_2       +slice SCREEN_A, SCREEN_B, 8, 11, 13, 16, row_col_a
+copy_ab_3       +slice SCREEN_A, SCREEN_B, 12, 15, 9, 12, row_col_a
+copy_ab_4       +slice SCREEN_A, SCREEN_B, 16, 19, 5, 8, row_col_a
+copy_ab_5       +slice SCREEN_A, SCREEN_B, 20, 24, 0, 4, row_col_a
+copy_ba_0       +slice SCREEN_B, SCREEN_A, 0, 3, 21, 24, row_col_b
+copy_ba_1       +slice SCREEN_B, SCREEN_A, 4, 7, 17, 20, row_col_b
+copy_ba_2       +slice SCREEN_B, SCREEN_A, 8, 11, 13, 16, row_col_b
+copy_ba_3       +slice SCREEN_B, SCREEN_A, 12, 15, 9, 12, row_col_b
+copy_ba_4       +slice SCREEN_B, SCREEN_A, 16, 19, 5, 8, row_col_b
+copy_ba_5       +slice SCREEN_B, SCREEN_A, 20, 24, 0, 4, row_col_b

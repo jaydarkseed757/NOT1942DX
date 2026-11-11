@@ -323,7 +323,9 @@ para_buf_hi !byte >SCREEN_A     ; the front buffer's page, as drawn
 ; -----------------------------------------------------------------------------
 ; para_fixup: the scroller's slice X (0-5) has just copied front rows into
 ; the back buffer (back row r = front row r - 1), cloud chars and all: put
-; the map chars and their colours back there. Clobbers A, X, Y, para_dp.
+; the map chars back there. (The colour shadow needs nothing: it is shifted
+; from its own rows, which never hold the cloud's colour.)
+; Clobbers A, X, Y, para_dp.
 ; TIMING: ~40 cycles a cloud cell.
 ; -----------------------------------------------------------------------------
 para_fixup
@@ -367,19 +369,12 @@ para_fixup
 .in     ldy para_code,x
 .lo     lda #0                  ; (self-modified: the offset)
         sta .back+1
-        sta .shadow+1
 .hi     lda #0
         clc
 .bh     adc #0                  ; (+ the back buffer's page)
         sta .back+2
-        lda .hi+1
-        clc
-        adc #>CRAM_SHADOW
-        sta .shadow+2
         tya
 .back   sta $ffff               ; (self-modified) the map char back
-        lda CHAR_COL,y
-.shadow sta $ffff               ; (self-modified) and its colour
 .next   dex
         bpl .cell
 .out    rts
@@ -389,7 +384,6 @@ para_fixup
 .end_hi   !byte >(4 * COLS), >(8 * COLS), >(12 * COLS), >(16 * COLS), >(20 * COLS), >(25 * COLS)
 .base_hi  !byte >SCREEN_A, >SCREEN_B
 !if SLICES != 6 { !error "para_fixup: its row table assumes the scroller's 6 slices" }
-!if <CRAM_SHADOW != 0 { !error "para_fixup: CRAM_SHADOW must be page aligned" }
 
 ; The schedule: where each cloud comes in, and the wait after it (frames).
 para_x_t    !byte 4, 22, 12, 30, 8, 26, 16, 2
