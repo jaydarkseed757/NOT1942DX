@@ -1,6 +1,6 @@
 # NOT 1942 DX
 
-*by JDC · version DX 1.0*
+*by JDC · version DX 1.1*
 
 A vertically scrolling shoot-'em-up for the **Commodore 64**, written from scratch in 6502 assembly. **NOT 1942 DX** is the deluxe remake of **NOT 1942**, inspired by the arcade classic *1942*. It keeps the original game: four levels, four bosses, the music and the controls. The engine and all the graphics are new.
 

@@ -62,9 +62,9 @@ TITLE_PAUSE_LEN = * - title_pause
 
 ; Version, top right of the title screen. Change it for each release.
 !ifdef TURBO {
-title_version   !scr "dx 1.0 turbo "
+title_version   !scr "dx 1.1 turbo "
 title_speed     !scr "?x"           ; the speed found at boot (turbo.asm)
 } else {
-title_version   !scr "dx 1.0"
+title_version   !scr "dx 1.1"
 }
 TITLE_VERSION_LEN = * - title_version

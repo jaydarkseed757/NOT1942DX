@@ -209,7 +209,8 @@ land_update
         jsr hud_show_clear      ; (it switches the bar's slot off: car_place
         jmp car_place           ;   switches it on again, with the ship)
 
-.ride   lda land_moved          ; parked: it moves with the carrier
+.ride   jsr land_fade
+        lda land_moved          ; parked: it moves with the carrier
         beq car_place
         inc player_y
         ; (fall through)
@@ -254,6 +255,38 @@ car_place
         rts
 .car_dy !byte 0 * CAR_PART_H, 1 * CAR_PART_H, 2 * CAR_PART_H
 !if CAR_PARTS != 3 { !error "car_place: .car_dy lists three parts" }
+
+; land_fade: while the level fades out (fade_dir = 1, level.asm) the carrier
+; and the ship darken with it, a step per fade_k: their own colours and the
+; sprites' two shared ones ($D025 / $D026; init_sprites sets them again).
+; The message goes when the fade starts. Clobbers A, X.
+land_fade
+        lda fade_dir
+        cmp #1
+        bne ++
+        lda lvl_timer           ; the fade's first frame: no message
+        cmp #FADE_FRAMES
+        bne +
+        lda #0
+        jsr hud_message
++       ldx fade_k
+        lda .fcar,x
+        sta spr_col + CAR_SLOT
+        sta spr_col + CAR_SLOT + 1
+        sta spr_col + CAR_SLOT + 2
+        lda .fship,x
+        sta spr_col + SLOT_HUD_BAR
+        jsr mux_pins_changed    ; (a pinned entry: its colour too)
+        lda .fmc0,x
+        sta SPR_MC0
+        lda .fmc1,x
+        sta SPR_MC1
+++      rts
+.fcar   !byte COL_CARRIER, COL_CARRIER, COL_CARRIER, COL_BLACK, COL_BLACK
+.fship  !byte COL_PLAYER, COL_GREY, COL_DGREY, COL_BLACK, COL_BLACK
+.fmc0   !byte SPR_SHARED1, COL_LGREY, COL_GREY, COL_DGREY, COL_BLACK
+.fmc1   !byte SPR_SHARED2, COL_DGREY, COL_DGREY, COL_BLACK, COL_BLACK
+!if FADE_STEPS != 4 { !error "land_fade: its tables have FADE_STEPS + 1 entries" }
 
 land_shapes !byte PTR_SHIP, PTR_SHIP_S1, PTR_SHIP_S2
 !if DESCEND_FRAMES / 16 != 3 { !error "land_update: three shapes, 16 frames each" }
